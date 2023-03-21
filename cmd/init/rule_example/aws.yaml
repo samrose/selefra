@@ -1,0 +1,34 @@
+rules:
+  - name: mfa_delete_is_disable
+    query: |-
+      SELECT
+        *
+      FROM
+        aws_s3_buckets
+      WHERE
+        versioning_status IS DISTINCT
+      FROM
+        'Enabled'
+        OR versioning_mfa_delete IS DISTINCT
+      FROM
+        'Enabled';
+    output: "MFA delete is disable, arn: {{.arn}}"
+  - name: bucket_logging_disable
+    query: |-
+      SELECT
+        *
+      FROM
+        aws_s3_buckets
+      WHERE
+        logging_target_bucket IS NULL
+        AND logging_target_prefix IS NULL;
+    output: "S3 bucket logging disable, arn: {{.arn}}"
+  - name: ebs_encryption_is_disabled_by_default
+    query: |-
+      SELECT
+        *
+      FROM
+        aws_ec2_regional_configs
+      WHERE
+        ebs_encryption_enabled_by_default IS FALSE;
+    output: "EBS encryption is disabled by default, region id: {{.region}}"

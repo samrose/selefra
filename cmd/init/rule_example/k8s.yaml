@@ -1,0 +1,25 @@
+rules:
+  - name: cronjob_cpu_no_limit
+    query: |-
+      SELECT
+        a1.*
+      FROM
+        k8s_batch_cron_jobs AS a1,
+        jsonb_array_elements (
+          spec_job_template -> 'spec' -> 'template' -> 'spec' -> 'containers'
+        ) AS a2
+      WHERE
+        a2 -> 'resources' -> 'limits' ->> 'cpu' IS NULL;
+    output: "Cronjob cpu no limit, name: {{.name}}"
+  - name: daemonset_memory_no_limit
+    query: |-
+      SELECT
+        a1.*
+      FROM
+        k8s_apps_daemon_sets AS a1,
+        jsonb_array_elements (
+          spec_template -> 'spec' -> 'containers'
+        ) AS a2
+      WHERE
+        a2 -> 'resources' -> 'limits' ->> 'memory' IS NULL;
+    output: "Daemonset memory no limit, name: {{.name}}"

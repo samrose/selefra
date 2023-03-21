@@ -1,0 +1,28 @@
+rules:
+  - name: secure_transfer_required_is_set_to_disabled
+    query: |-
+      SELECT
+        *
+      FROM
+        azure_storage_accounts
+      WHERE
+        ( properties ->> 'supportsHttpsTrafficOnly' ) :: BOOLEAN = FALSE;
+    output: "Secure transfer required is set to disabled, bucket name: {{.name}}, location: {{.location}}"
+  - name: public_network_access_is_set_to_allow
+    query: |-
+      SELECT
+        *
+      FROM
+        azure_storage_accounts
+      WHERE
+        properties -> 'network_acls' ->> 'defaultAction' IS DISTINCT FROM 'Deny';
+    output: "Public network access is set to allow, bucket name: {{.name}}, location: {{.location}}"
+  - name: unattached_disk_exists
+    query: |-
+      SELECT
+        *
+      FROM
+        azure_compute_disks
+      WHERE
+        properties ->> 'diskState' = 'Unattached';
+    output: "Unattached disk exists, disk name: {{.name}}, location: {{.location}}"

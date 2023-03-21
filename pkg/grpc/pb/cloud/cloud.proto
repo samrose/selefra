@@ -1,0 +1,101 @@
+syntax = "proto3";
+option go_package = "proto/cloud";
+package cloud;
+import "common/common.proto";
+// protoc --proto_path=pkg/grpc/pb/cloud --go_out=pkg/grpc/pb/cloud --go_opt=paths=source_relative --go-grpc_out=pkg/grpc/pb/cloud --go-grpc_opt=paths=source_relative  cloud.proto
+
+
+
+
+message RequestEmpty {}
+
+message ResponseEmpty {}
+
+message Login {
+  message Request {
+    string token = 1;
+  }
+
+  message Response {
+    common.Diagnosis diagnosis = 1;
+
+    string token_name = 2;
+    string user_name = 3;
+    string org_name = 4;
+    string server_host = 5;
+  }
+}
+
+message FetchOrgDsn {
+  message Response {
+    common.Diagnosis diagnosis = 1;
+    string dsn = 2;
+  }
+}
+
+message Logout {
+  message Response {
+    common.Diagnosis diagnosis = 1;
+  }
+}
+
+message CreateProject {
+  message Request {
+    string name = 1;
+  }
+
+  message Response {
+    common.Diagnosis diagnosis = 1;
+    string name = 2;
+    string org_name = 3;
+  }
+}
+
+
+message SyncWorkplace {
+  message ProjectWorkplace {
+    string path = 1;
+    string yaml_content = 2;
+  }
+
+  message Request {
+    string project_name = 1;
+    repeated ProjectWorkplace project_workplace = 2;
+  }
+
+  message Response {
+    common.Diagnosis diagnosis = 1;
+  }
+}
+
+message CreateTask {
+  message Request {
+    string project_name = 1;
+    string task_id = 2;
+    string task_source = 3;
+    string name = 4;
+  }
+
+  message Response {
+    common.Diagnosis diagnosis = 1;
+    string task_id = 2;
+    uint64 project_task_id = 3;
+  }
+}
+
+
+service CloudNoAuth {
+  rpc Login (Login.Request) returns (Login.Response) {};
+}
+
+service Cloud {
+  rpc FetchOrgDsn (RequestEmpty) returns (FetchOrgDsn.Response) {};
+
+  rpc Logout (RequestEmpty) returns (Logout.Response) {};
+
+  rpc CreateProject (CreateProject.Request) returns (CreateProject.Response) {}
+
+  rpc SyncWorkplace (SyncWorkplace.Request) returns (SyncWorkplace.Response) {}
+
+  rpc CreateTask (CreateTask.Request) returns (CreateTask.Response) {}
+}

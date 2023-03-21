@@ -1,0 +1,28 @@
+selefra:
+  cloud:
+    project: example_project
+    organization: example_org
+    hostname: app.selefra.io
+  connection:
+    type: postgres
+    username: postgres
+    password: pass
+    host: localhost
+    port: "5432"
+    database: postgres
+    sslmode: disable
+  name: example_project
+  cli_version: v0.0.1
+  providers:
+    - name: aws
+      source: selefra/aws
+      version: ">=0.0.9,<=0.0.10"
+    - name: gcp
+      source: selefra/gcp
+      version: ">=0.0.9,<=0.0.10"
+
+modules:
+  - name: Misconfiguration-S3
+    uses:
+      - ./sub_module_a/
+      - ./sub_module_b/

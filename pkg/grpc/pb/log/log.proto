@@ -1,0 +1,74 @@
+syntax = "proto3";
+option go_package = "proto/log";
+package log;
+import "google/protobuf/timestamp.proto";
+import "common/common.proto";
+// protoc --proto_path=pkg/grpc/pb/log --proto_path=pkg/grpc/tripartite --go_out=pkg/grpc/pb/log --go_opt=paths=source_relative --go-grpc_out=pkg/grpc/pb/log --go-grpc_opt=paths=source_relative  log.proto
+
+
+message UploadLogStream {
+    message Request {
+
+        StageType stage = 1;
+
+        // log id, task uniq
+        uint64 index = 2;
+
+        string msg = 3;
+
+        Level level = 4;
+
+        // log product time
+        google.protobuf.Timestamp time = 5;
+    }
+
+    message Response {
+
+    }
+}
+
+enum StageType {
+    STAGE_TYPE_INITIALIZING = 0;
+    STAGE_TYPE_PULL_INFRASTRUCTURE = 1;
+    STAGE_TYPE_INFRASTRUCTURE_ANALYSIS = 2;
+}
+
+enum Status {
+    STATUS_SUCCESS = 0;
+    STATUS_FAILED = 1;
+}
+
+enum Level {
+    LEVEL_DEBUG = 0;
+    LEVEL_INFO = 1;
+    LEVEL_WARN = 2;
+    LEVEL_ERROR = 3;
+    LEVEL_FATAL = 4;
+}
+
+message UploadLogStatus {
+    message Request {
+        StageType stage = 1;
+
+        Status status = 2;
+
+        // status change time
+        google.protobuf.Timestamp time = 3;
+    }
+
+    message Response {
+        common.Diagnosis diagnosis = 1;
+    }
+}
+
+
+
+
+
+
+service Log {
+
+    rpc UploadLogStream (stream UploadLogStream.Request) returns (UploadLogStream.Response) {};
+
+    rpc UploadLogStatus (UploadLogStatus.Request) returns (UploadLogStatus.Response) {};
+}

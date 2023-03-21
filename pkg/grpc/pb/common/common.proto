@@ -1,0 +1,17 @@
+syntax = "proto3";
+option go_package = "proto/common";
+package common;
+
+//protoc --proto_path=pkg/grpc/pb --go_out=pkg/grpc/pb --go_opt=paths=source_relative --go-grpc_out=pkg/grpc/pb  common/common.proto cloud/cloud.proto issue/issue.proto log/log.proto
+
+message Diagnosis {
+  Code code = 1;
+  string msg = 2;
+
+  enum Code {
+    SUCCESS = 0;
+    IllegalToken = 2;
+    Error = 7;
+    NoAuthority = 11;
+  }
+}

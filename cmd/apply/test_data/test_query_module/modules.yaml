@@ -1,0 +1,62 @@
+rules:
+  - name: bucket_is_not_configured_with_cors_rules
+    query: |
+      select * from mock_bar
+    labels:
+      resource_account_id: '{{.account_id}}'
+      resource_id: '{{.arn}}'
+      resource_region: '{{.region}}'
+      resource_type: S3
+      bucket_url: 'https://{{.name}}.s3.{{.region}}.amazonaws.com'
+    metadata:
+      author: Selefra
+      description: Ensure to configure secure CORS rules for the Bucket.
+      id: SF010117
+      provider: AWS
+      remediation:
+      severity: Low
+      tags:
+        - Security
+        - Misconfiguration
+      title: S3 Bucket is not configured with CORS rules
+    output: "S3 Bucket is not configured with CORS rules, arn: {{.arn}}"
+
+selefra:
+  cloud:
+    project: example_project
+    organization: example_org
+  #    hostname: app.selefra.io
+  #  connection:
+  #    type: postgres
+  #    username: postgres
+  #    password: pass
+  #    host: localhost
+  #    port: "5432"
+  #    database: postgres
+  #    sslmode: disable
+  name: example_project
+  cli_version: v0.0.1
+  providers:
+    - name: mock
+      source: mock
+      version: latest
+#    - name: gcp
+#      source: gcp
+#      version: ">=0.0.9,<=0.0.10"
+
+
+providers:
+  - name: aws_001
+    cache: 1d
+    provider: mock
+    foo-count: 10
+    bar-count: 10
+    sleep-seconds: 1
+    max_goroutines: 1
+  - name: aws_002
+    cache: 1d
+    provider: mock
+    foo-count: 10
+    bar-count: 10
+    sleep-seconds: 1
+    max_goroutines: 1

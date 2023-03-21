@@ -1,0 +1,100 @@
+syntax = "proto3";
+option go_package = "proto/issue";
+package issue;
+// protoc --proto_path=pkg/grpc/pb/issue --go_out=pkg/grpc/pb/issue --go_opt=paths=source_relative --go-grpc_out=pkg/grpc/pb/issue --go-grpc_opt=paths=source_relative  issue.proto
+
+
+message UploadIssueStream {
+
+    message Response {
+    }
+
+    message Request {
+
+        int32 index = 1;
+
+        Rule rule = 2;
+
+        Provider provider = 3;
+
+        Module module = 4;
+
+        // i do not know how to name it...
+        Context context = 5;
+
+    }
+
+    message Context {
+        repeated string src_table_names = 1;
+        // use which one pg db schema
+        string schema = 2;
+    }
+
+    message Module {
+        string name = 1;
+        string source = 2;
+        repeated string dependencies_path = 3;
+    }
+
+    message Provider {
+        string name = 1;
+        string provider = 2;
+        string version = 3;
+    }
+
+    // rule's file block
+    message Rule {
+
+        string name = 1;
+
+        // sql
+        string query = 2;
+
+        map<string, string> labels = 3;
+
+        // rule's metadata
+        Metadata metadata = 4;
+
+        string output = 5;
+    }
+
+    // rule's metadata
+    message Metadata {
+
+        string author = 1;
+
+        string description = 2;
+
+        string id = 3;
+
+        string provider = 4;
+
+        string remediation = 5;
+
+        Severity severity = 6;
+
+        repeated string tags = 7;
+
+        string title = 8;
+    }
+
+
+    enum Severity {
+        UNKNOWN = 0;
+        INFORMATIONAL = 1;
+        LOW = 2;
+        MEDIUM = 3;
+        HIGH = 4;
+        CRITICAL = 5;
+    }
+}
+
+
+/*
+  token: token
+  projectName: projectName
+  taskUUID: taskUUID
+ */
+service Issue {
+    rpc UploadIssueStream (stream UploadIssueStream.Request) returns (UploadIssueStream.Response) {};
+}

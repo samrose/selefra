@@ -1,0 +1,29 @@
+selefra:
+  cloud:
+    project: example_project
+    organization: example_org
+    hostname: app.selefra.io
+  #  connection:
+  #    type: postgres
+  #    username: postgres
+  #    password: pass
+  #    host: localhost
+  #    port: 5432
+  #    database: postgres
+  #    sslmode: disable
+  name: example_project
+  cli_version: v0.0.1
+  providers:
+    - name: mock
+      source: mock
+      version: latest
+
+providers:
+  - name: mock
+    cache: 1h
+    provider: mock
+    max_attempts: 10
+    max_backoff: 30
+    foo-count: 2
+    bar-count: 2
+    sleep-seconds: 1

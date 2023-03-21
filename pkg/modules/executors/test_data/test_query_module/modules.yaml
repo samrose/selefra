@@ -1,0 +1,27 @@
+#rules:
+#  - name: bucket_versioning_is_disabled
+#    query: |-
+#      SELECT
+#        *
+#      FROM
+#        auth0_rule
+#      WHERE
+#        script LIKE '%const % = context;%';
+#    output: "S3 bucket versioning is disabled, arn: {{.arn}}"
+#
+#selefra:
+#  cloud:
+#    project: example_project
+#    organization: example_org
+#  name: example_project
+#  cli_version: v0.0.1
+#  providers:
+#    - name: auth0
+#      source: auth0
+#      version: latest
+#
+#providers:
+#  - name: auth0
+#    cache: 3d
+#    provider: auth0
+#    max_goroutines: 100

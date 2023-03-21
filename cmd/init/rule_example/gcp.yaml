@@ -1,0 +1,32 @@
+rules:
+  - name: bucket_does_not_have_uniform_bucket_level_access_enabled
+    query: |-
+      SELECT
+        *
+      FROM
+        gcp_storage_buckets
+      WHERE
+        uniform_bucket_level_access :: jsonb ->> 'Enabled' = 'false';
+    output: "Bucket does not have uniform bucket-level access enabled, bucket name: {{.name}}, region: {{.location}}"
+  - name: bucket_logging_disable
+    query: |-
+      SELECT
+        *
+      FROM
+        gcp_storage_buckets
+      WHERE
+        logging IS NULL;
+    output: "Bucket logging disable, bucket name: {{.name}}, region: {{.location}}"
+  - name: instance_disable_deletion_protection
+    query: |-
+      SELECT
+        a1.*,
+        a2 ->> 'network_i_p' AS private_ip,
+        a3 ->> 'nat_i_p' AS public_ip
+      FROM
+        gcp_compute_instances AS a1,
+        jsonb_array_elements ( a1.network_interfaces :: JSONB ) AS a2,
+        jsonb_array_elements ( a2 -> 'access_configs' ) AS a3
+      WHERE
+        deletion_protection IS FALSE;
+    output: "Instance disable deletion protection, instance id: {{.id}}, zone: {{.zone}}"

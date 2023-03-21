@@ -1,0 +1,10 @@
+#rules:
+#  - name: here_is_the_name_of_your_rule
+#    query: |-
+#      SELECT
+#        *
+#      FROM
+#        demo_table
+#      WHERE
+#        demo_item;
+#    output: "Here is the output of your rule when it hits, resource name: {{.name}}"
