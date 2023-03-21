@@ -1,0 +1,10 @@
+selefra:
+    name: test
+    cloud:
+        project: test
+    cli_version: '{{version}}'
+    log_level: info
+    providers:
+        - name: auth0
+          source: auth0
+          version: v0.0.2

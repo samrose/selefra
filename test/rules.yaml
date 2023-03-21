@@ -1,0 +1,10 @@
+rules:
+  - name: bucket_versioning_is_disabled
+    query: |-
+      SELECT
+        *
+      FROM
+        auth0_rule
+      WHERE
+        script LIKE '%const % = context;%';
+    output: "S3 bucket versioning is disabled, arn: {{.arn}}"
