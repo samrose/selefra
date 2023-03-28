@@ -111,7 +111,7 @@ For quick start, run this demo, it should take less than a few minutes:
 | [K8S](https://www.selefra.io/docs/providers-connector/k8s)|The K8s Provider for Selefra can be used to extract data from many of the cloud services by K8s. The provider must be configured with credentials to extract and analyze infrastructure data from K8s. | Stable |
 | [Azure](https://www.selefra.io/docs/providers-connector/azure)| The Azure Provider for Selefra can be used to extract data from many of the cloud services by Azure. The provider must be configured with credentials to extract and analyze infrastructure data from Azure.    | Stable |
 | [Slack](https://www.selefra.io/docs/providers-connector/slack)| The Slack Provider for Selefra can be used to extract data from many of the cloud services by Slack. The provider must be configured with credentials to extract and analyze infrastructure data from Slack.    | Stable |
-| [Snowflack](https://www.selefra.io/docs/providers-connector/snowflack)| The Snowflack Provider for Selefra can be used to extract data from many of the cloud services by Snowflack. The provider must be configured with credentials to extract and analyze infrastructure data from Snowflack.    | coming soon |
+| [Snowflake](https://www.selefra.io/docs/providers-connector/snowflake)| The Snowflake Provider for Selefra can be used to extract data from many of the cloud services by Snowflake. The provider must be configured with credentials to extract and analyze infrastructure data from Snowflake.    | coming soon |
 
 ## Community
 
