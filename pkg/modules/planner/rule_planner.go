@@ -104,19 +104,19 @@ func (x *RulePlanner) MakePlan(ctx context.Context) (*RulePlan, *schema.Diagnost
 	}
 
 	// Resolve the binding of the Rule to the Provider and table
-	bindingProviders, bindingTables := x.extractBinding(query, x.options.TableToProviderMap)
-	if len(bindingProviders) != 1 {
-		var errorTips string
-		if len(bindingProviders) == 0 {
-			errorTips = fmt.Sprintf("Your rule query should use at least one of the provider tables. Check that your sql is written correctly: %s", x.options.RuleBlock.Query)
-		} else {
-			errorTips = fmt.Sprintf("The tables used in your rule query span multiple providers; the current version of the rule query only allows several tables from one provider to be used: %s", x.options.RuleBlock.Query)
-		}
-		location := x.options.RuleBlock.GetNodeLocation("query" + module.NodeLocationSelfValue)
-		// TODO 2023-2-24 15:10:15 bug: Can't correct marks used in yaml | a line
-		report := module.RenderErrorTemplate(errorTips, location)
-		return nil, diagnostics.AddErrorMsg(report)
-	}
+	//bindingProviders, bindingTables := x.extractBinding(query, x.options.TableToProviderMap)
+	//if len(bindingProviders) != 1 {
+	//	var errorTips string
+	//	if len(bindingProviders) == 0 {
+	//		errorTips = fmt.Sprintf("Your rule query should use at least one of the provider tables. Check that your sql is written correctly: %s", x.options.RuleBlock.Query)
+	//	} else {
+	//		errorTips = fmt.Sprintf("The tables used in your rule query span multiple providers; the current version of the rule query only allows several tables from one provider to be used: %s", x.options.RuleBlock.Query)
+	//	}
+	//	location := x.options.RuleBlock.GetNodeLocation("query" + module.NodeLocationSelfValue)
+	//	// TODO 2023-2-24 15:10:15 bug: Can't correct marks used in yaml | a line
+	//	report := module.RenderErrorTemplate(errorTips, location)
+	//	return nil, diagnostics.AddErrorMsg(report)
+	//}
 
 	// Create a Rule execution plan
 	return &RulePlan{
@@ -126,8 +126,8 @@ func (x *RulePlanner) MakePlan(ctx context.Context) (*RulePlan, *schema.Diagnost
 
 		RuleBlock: x.options.RuleBlock,
 
-		BindingProviderName: bindingProviders[0],
-		BindingTables:       bindingTables,
+		BindingProviderName: "",
+		BindingTables:       []string{},
 
 		Query: query,
 

@@ -22,11 +22,15 @@ rules:
     output: "S3 Bucket is not configured with CORS rules, arn: {{.arn}}"
 
 selefra:
-  cloud:
-    project: example_project
-    organization: example_org
-    hostname: app.selefra.io
   name: example_project
+  connection:
+    type: postgres
+    username: postgres
+    password: pass
+    host: localhost
+    port: "5432"
+    database: postgres
+    sslmode: disable
   cli_version: v0.0.1
   providers:
     - name: mock

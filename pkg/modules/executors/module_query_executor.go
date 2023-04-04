@@ -1,7 +1,9 @@
 package executors
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/go-getter"
 	"github.com/selefra/selefra-provider-sdk/grpc/shard"
@@ -11,9 +13,13 @@ import (
 	"github.com/selefra/selefra/pkg/modules/planner"
 	"github.com/selefra/selefra/pkg/registry"
 	"github.com/selefra/selefra/pkg/utils"
+	"io"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"sync"
+	"text/template"
 )
 
 // ------------------------------------------------- --------------------------------------------------------------------
@@ -213,50 +219,137 @@ func (x *ModuleQueryExecutorWorker) execRulePlan(ctx context.Context, rulePlan *
 
 	x.sendMessage(schema.NewDiagnostics().AddInfo("Rule %s begin exec...", rulePlan.String()))
 
-	storages := x.moduleQueryExecutor.options.ProviderExpandMap[rulePlan.BindingProviderName]
-	if len(storages) == 0 {
-		errorMsg := fmt.Sprintf("Rule %s binding provider %s not found, can not exec query", rulePlan.String(), rulePlan.BindingProviderName)
-		x.sendMessage(schema.NewDiagnostics().AddErrorMsg(errorMsg))
-		return
-	}
-	for _, storage := range storages {
-
-		x.execStorageQuery(ctx, rulePlan, storage)
-		// TODO Stage log
+	storagesMap := x.moduleQueryExecutor.options.ProviderExpandMap
+	for _, storages := range storagesMap {
+		for _, storage := range storages {
+			x.execStorageQuery(ctx, rulePlan, storage)
+			// TODO Stage log
+		}
 	}
 	// TODO log
 
 	x.sendMessage(schema.NewDiagnostics().AddInfo("Rule %s exec done", rulePlan.String()))
 }
 
+func isSql(query string) bool {
+	pattern := "(?i)\\b(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|TRUNCATE|GRANT|REVOKE)\\b"
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(query)
+}
+
 func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePlan *planner.RulePlan, providerContext *planner.ProviderContext) {
+	// Query whether it is gpt through query statement
+	if isSql(rulePlan.Query) {
+		resultSet, diagnostics := providerContext.Storage.Query(ctx, rulePlan.Query)
+		if utils.HasError(diagnostics) {
+			x.sendMessage(schema.NewDiagnostics().AddErrorMsg("rule %s exec error: %s", rulePlan.String(), diagnostics.ToString()))
+			return
+		}
 
-	resultSet, diagnostics := providerContext.Storage.Query(ctx, rulePlan.Query)
-	if utils.HasError(diagnostics) {
-		x.sendMessage(schema.NewDiagnostics().AddErrorMsg("rule %s exec error: %s", rulePlan.String(), diagnostics.ToString()))
-		return
-	}
+		// TODO Print log prompt
+		//x.moduleQueryExecutor.options.MessageChannel <- schema.NewDiagnostics().AddInfo("")
+		//cli_ui.Infof("%rootConfig - Rule \"%rootConfig\"\n", rule.Path, rule.Name)
+		//cli_ui.Infoln("Schema:")
+		//cli_ui.Infoln(schema + "\n")
+		//cli_ui.Infoln("Description:")
 
-	// TODO Print log prompt
-	//x.moduleQueryExecutor.options.MessageChannel <- schema.NewDiagnostics().AddInfo("")
-	//cli_ui.Infof("%rootConfig - Rule \"%rootConfig\"\n", rule.Path, rule.Name)
-	//cli_ui.Infoln("Schema:")
-	//cli_ui.Infoln(schema + "\n")
-	//cli_ui.Infoln("Description:")
-
-	for {
-		rows, d := resultSet.ReadRows(100)
-		if rows != nil {
-			for _, row := range rows.SplitRowByRow() {
-				x.processRuleRow(ctx, rulePlan, providerContext, row)
+		for {
+			rows, d := resultSet.ReadRows(100)
+			if rows != nil {
+				for _, row := range rows.SplitRowByRow() {
+					x.processRuleRow(ctx, rulePlan, providerContext, row)
+				}
+			}
+			if utils.HasError(d) {
+				x.sendMessage(d)
+			}
+			if rows == nil || rows.RowCount() == 0 {
+				break
 			}
 		}
-		if utils.HasError(d) {
-			x.sendMessage(d)
+	} else {
+
+		openaiApiKey := rulePlan.Module.SelefraBlock.GetOpenaiApiKey()
+		openaiMode := rulePlan.Module.SelefraBlock.GetOpenaiMode()
+		openaiLimit := rulePlan.Module.SelefraBlock.GetOpenaiLimit()
+
+		typeRes, err := utils.OpenApiClient(ctx, openaiApiKey, openaiMode, "type", rulePlan.Query)
+		if err != nil {
+			return
 		}
-		if rows == nil || rows.RowCount() == 0 {
-			break
+		tar := strings.Split(typeRes, " & ")
+		ty := tar[0]
+		provider := tar[1]
+
+		schameTmp := `SELECT table_schema, table_name 
+FROM information_schema.tables 
+WHERE table_type = 'BASE TABLE' 
+AND table_name <> 'selefra_meta_kv'
+AND table_schema = '%s';`
+
+		schameSql := fmt.Sprintf(schameTmp, providerContext.Schema)
+		tableName := ""
+		tableNames := []string{}
+		resultSet, diagnostics := providerContext.Storage.Query(ctx, schameSql)
+		if utils.HasError(diagnostics) {
+			x.sendMessage(schema.NewDiagnostics().AddErrorMsg("rule %s exec error: %s", rulePlan.String(), diagnostics.ToString()))
+			return
 		}
+		for {
+			rows, d := resultSet.ReadRows(-1)
+			if rows != nil {
+				for _, row := range rows.SplitRowByRow() {
+					table, err := row.Get("table_name")
+					if err != nil {
+						fmt.Println(err)
+					}
+					tableName += table.(string) + ","
+					if len(tableName) > 4000 {
+						tableNames = append(tableNames, tableName)
+						tableName = ""
+					}
+					//x.processRuleRow(ctx, rulePlan, providerContext, row)
+				}
+			}
+			if utils.HasError(d) {
+				x.sendMessage(d)
+			}
+			if rows == nil || rows.RowCount() == 0 {
+				break
+			}
+		}
+
+		tables, err := x.filterTables(ctx, tableNames, ty, openaiApiKey, openaiMode, rulePlan)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		tables = utils.RemoveRepeatedElement(tables)
+		columnMap, err := x.filterColumns(ctx, tables, providerContext, ty, openaiApiKey, openaiMode, rulePlan)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		for k := range columnMap {
+			if len(columnMap[k]) == 0 {
+				delete(columnMap, k)
+			}
+		}
+		rows, err := x.getRows(ctx, columnMap, providerContext, openaiLimit, rulePlan)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		limit := int(openaiLimit)
+		if len(rows) < int(openaiLimit) {
+			limit = len(rows)
+		}
+		err = x.getIssue(ctx, rows[:limit], openaiApiKey, openaiMode, ty, provider, tableName, rulePlan, providerContext)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println(openaiApiKey, openaiMode, openaiLimit)
 	}
 }
 
@@ -507,3 +600,161 @@ func (x *ModuleQueryExecutorWorker) renderRuleMetadata(ctx context.Context, rule
 //}
 
 // ------------------------------------------------- --------------------------------------------------------------------
+
+func fmtTemplate(temp string, params map[string]interface{}) (string, error) {
+	t, err := template.New("temp").Parse(temp)
+	if err != nil {
+		return "", err
+	}
+	b := bytes.Buffer{}
+	err = t.Execute(&b, params)
+	if err != nil {
+		return "", err
+	}
+	by, err := io.ReadAll(&b)
+	if err != nil {
+		return "", err
+	}
+	return string(by), nil
+}
+
+func (x *ModuleQueryExecutorWorker) filterTables(ctx context.Context, tableNames []string, ty string, openaiApiKey string, openaiMode string, rulePlan *planner.RulePlan) (tables []string, err error) {
+	for i := range tableNames {
+		table, err := utils.OpenApiClient(ctx, openaiApiKey, openaiMode, ty+"Table", rulePlan.Query, tableNames[i])
+		if err != nil {
+			fmt.Println(err)
+		}
+		tables = append(tables, strings.Split(table, ",")...)
+	}
+	return tables, nil
+}
+
+func (x *ModuleQueryExecutorWorker) filterColumns(ctx context.Context, tables []string, providerContext *planner.ProviderContext, ty string, openaiApiKey string, openaiMode string, rulePlan *planner.RulePlan) (map[string][]string, error) {
+
+	cloumnSql := `
+SELECT table_name, column_name
+FROM information_schema.columns
+WHERE table_name in (%s) AND table_schema = '%s';
+`
+	for i := range tables {
+		tables[i] = "'" + tables[i] + "'"
+	}
+	cloumnSql = fmt.Sprintf(cloumnSql, strings.Join(tables, ","), providerContext.Schema)
+	columnRes, columnDiagnostics := providerContext.Storage.Query(ctx, cloumnSql)
+	columnMap := make(map[string][]string)
+	if utils.HasError(columnDiagnostics) {
+		x.sendMessage(schema.NewDiagnostics().AddErrorMsg("rule %s exec error: %s", rulePlan.String(), columnDiagnostics.ToString()))
+		return columnMap, fmt.Errorf("rule %s exec error: %s", rulePlan.String(), columnDiagnostics.ToString())
+	}
+	for {
+		rows, d := columnRes.ReadRows(-1)
+		if rows != nil {
+			for _, row := range rows.SplitRowByRow() {
+				table_name, err := row.Get("table_name")
+				if err != nil {
+					fmt.Println(err)
+				}
+				column_name, err := row.Get("column_name")
+				if err != nil {
+					fmt.Println(err)
+				}
+				columnMap[table_name.(string)] = append(columnMap[table_name.(string)], column_name.(string))
+				//x.processRuleRow(ctx, rulePlan, providerContext, row)
+			}
+		}
+		if utils.HasError(d) {
+			x.sendMessage(d)
+		}
+		if rows == nil || rows.RowCount() == 0 {
+			break
+		}
+	}
+
+	for s := range columnMap {
+		columnMap[s] = utils.RemoveRepeatedElement(columnMap[s])
+		Columns, err := utils.OpenApiClient(ctx, openaiApiKey, openaiMode, ty+"Column", rulePlan.Query, s, strings.Join(columnMap[s], ","))
+		if err != nil {
+			fmt.Println(err)
+		}
+		if Columns != "" {
+			Columns = strings.Trim(Columns, "\nAnswer:\n")
+			Columns = strings.Trim(Columns, ".")
+			ColumnsArr := strings.Split(Columns, ",")
+			ColumnsNeedArr := make([]string, 0)
+			for i := range ColumnsArr {
+				for i2 := range columnMap[s] {
+					if ColumnsArr[i] == columnMap[s][i2] {
+						ColumnsNeedArr = append(ColumnsNeedArr, columnMap[s][i2])
+					}
+				}
+			}
+			columnMap[s] = ColumnsNeedArr
+		}
+	}
+	return columnMap, nil
+}
+
+func (x *ModuleQueryExecutorWorker) getRows(ctx context.Context, columnMap map[string][]string, providerContext *planner.ProviderContext, openaiLimit uint64, rulePlan *planner.RulePlan) (rs []*schema.Row, err error) {
+	for table := range columnMap {
+		sql := fmt.Sprintf("SELECT %s FROM %s.%s LIMIT %d", strings.Join(columnMap[table], ","), providerContext.Schema, table, openaiLimit)
+		infoRes, infoDiagnostics := providerContext.Storage.Query(ctx, sql)
+		if utils.HasError(infoDiagnostics) {
+			x.sendMessage(schema.NewDiagnostics().AddErrorMsg("rule %s exec error: %s", rulePlan.String(), infoDiagnostics.ToString()))
+			return rs, fmt.Errorf("rule %s exec error: %s", rulePlan.String(), infoDiagnostics.ToString())
+		}
+		for {
+			rows, d := infoRes.ReadRows(-1)
+			if rows != nil {
+				for _, row := range rows.SplitRowByRow() {
+					fmt.Println(row.String())
+					rs = append(rs, row)
+				}
+			}
+			if utils.HasError(d) {
+				x.sendMessage(d)
+			}
+			if rows == nil || rows.RowCount() == 0 {
+				break
+			}
+		}
+	}
+	return rs, nil
+}
+
+func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema.Row, openaiApiKey, openaiMode, ty, provider, tableName string, rulePlan *planner.RulePlan, providerContext *planner.ProviderContext) (err error) {
+	for _, row := range rows {
+		info, err := utils.OpenApiClient(ctx, openaiApiKey, openaiMode, ty, provider, tableName, row, rulePlan.Query)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		var infoBlockResult []*module.RuleBlock
+
+		b, err := json.Marshal(info)
+		if err != nil {
+			break
+		}
+		err = json.Unmarshal(b, &infoBlockResult)
+
+		//rulePlan.Output, _ = fmtTemplate(rulePlan.Output, row)
+		ruleBlockResult := &module.RuleBlock{
+			Name:          rulePlan.Name,
+			Query:         rulePlan.Query,
+			Labels:        rulePlan.Labels,
+			MetadataBlock: rulePlan.MetadataBlock,
+			Output:        info,
+		}
+
+		result := &RuleQueryResult{
+			Module:                rulePlan.Module,
+			RulePlan:              rulePlan,
+			RuleBlock:             ruleBlockResult,
+			Provider:              registry.NewProvider(providerContext.ProviderName, providerContext.ProviderVersion),
+			ProviderConfiguration: providerContext.ProviderConfiguration,
+			Schema:                providerContext.Schema,
+			Row:                   row,
+		}
+		x.moduleQueryExecutor.options.RuleQueryResultChannel.Send(result)
+	}
+	return nil
+}

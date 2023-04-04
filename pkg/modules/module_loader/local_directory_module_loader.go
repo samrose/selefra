@@ -20,7 +20,7 @@ import (
 // LocalDirectoryModuleLoaderOptions Option when loading modules from a local directory
 type LocalDirectoryModuleLoaderOptions struct {
 	*ModuleLoaderOptions
-
+	Instruction map[string]interface{} `json:"gpt" yaml:"gpt"`
 	// Directory where the module resides Directory
 	ModuleDirectory string `json:"module-directory" yaml:"module-directory"`
 }
@@ -100,7 +100,7 @@ func (x *LocalDirectoryModuleLoader) Load(ctx context.Context) (*module.Module, 
 	yamlFileModuleSlice := make([]*module.Module, len(yamlFilePathSlice))
 	isHasError := false
 	for index, yamlFilePath := range yamlFilePathSlice {
-		yamlFileModule, d := parser.NewYamlFileToModuleParser(yamlFilePath).Parse()
+		yamlFileModule, d := parser.NewYamlFileToModuleParser(yamlFilePath, x.options.Instruction).Parse()
 		x.options.MessageChannel.Send(d)
 		if utils.HasError(d) {
 			isHasError = true
@@ -229,6 +229,7 @@ func (x *LocalDirectoryModuleLoader) loadLocalDirectoryModule(ctx context.Contex
 	subModuleDirectory := filepath.Join(utils.AbsPath(x.options.ModuleDirectory), useModuleSource)
 
 	subModuleLocalDirectoryOptions := &LocalDirectoryModuleLoaderOptions{
+		Instruction: x.options.Instruction,
 		ModuleLoaderOptions: &ModuleLoaderOptions{
 			Source: useModuleSource,
 			// TODO

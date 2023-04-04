@@ -1,27 +1,24 @@
 #rules:
 #  - name: bucket_versioning_is_disabled
-#    query: |-
-#      SELECT
-#        *
-#      FROM
-#        auth0_rule
-#      WHERE
-#        script LIKE '%const % = context;%';
+#    query: "Please help me analyze the vulnerabilities in AWS S3?"
 #    output: "S3 bucket versioning is disabled, arn: {{.arn}}"
-#
-#selefra:
-#  cloud:
-#    project: example_project
-#    organization: example_org
-#  name: example_project
-#  cli_version: v0.0.1
-#  providers:
-#    - name: auth0
-#      source: auth0
-#      version: latest
-#
-#providers:
-#  - name: auth0
-#    cache: 3d
-#    provider: auth0
-#    max_goroutines: 100
+
+selefra:
+  openai_api_key: openaikey
+  openai_mode: gpt-3.5
+  openai_limit: 10
+  cloud:
+    project: example_project
+    organization: example_org
+  name: example_project
+  cli_version: v0.0.1
+  providers:
+    - name: aws
+      source: aws
+      version: latest
+
+providers:
+  - name: aws
+    cache: 3d
+    provider: aws
+    max_goroutines: 100

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/selefra/selefra-provider-sdk/provider/schema"
 	"github.com/selefra/selefra/pkg/utils"
+	"os"
 )
 
 // ------------------------------------------------- --------------------------------------------------------------------
@@ -16,6 +17,10 @@ type SelefraBlock struct {
 
 	// selefra CloudBlock-related configuration
 	CloudBlock *CloudBlock `yaml:"cloud,omitempty" mapstructure:"cloud,omitempty"`
+
+	OpenaiApiKey string `yaml:"openai_api_key,omitempty" mapstructure:"openai_api_key,omitempty"`
+	OpenaiMode   string `yaml:"openai_mode,omitempty" mapstructure:"openai_mode,omitempty"`
+	OpenaiLimit  uint64 `yaml:"openai_limit,omitempty" mapstructure:"openai_limit,omitempty"`
 
 	// The version of the cli used by the project
 	CliVersion string `yaml:"cli_version,omitempty" mapstructure:"cli_version,omitempty"`
@@ -39,6 +44,34 @@ func NewSelefraBlock() *SelefraBlock {
 	return &SelefraBlock{
 		LocatableImpl: NewLocatableImpl(),
 	}
+}
+
+func (x *SelefraBlock) GetOpenaiApiKey() string {
+	if x.OpenaiApiKey != "" {
+		return x.OpenaiApiKey
+	}
+	return os.Getenv("OPENAI_API_KEY")
+}
+
+func (x *SelefraBlock) GetOpenaiMode() string {
+	if x.OpenaiMode != "" {
+		return x.OpenaiMode
+	}
+	if os.Getenv("OPENAI_MODE") != "" {
+		return os.Getenv("OPENAI_MODE")
+	}
+	return "gpt-3.5"
+}
+
+func (x *SelefraBlock) GetOpenaiLimit() uint64 {
+	if x.OpenaiLimit != 0 {
+		return x.OpenaiLimit
+	}
+	if os.Getenv("OPENAI_LIMIT") != "" {
+		limit := os.Getenv("OPENAI_LIMIT")
+		return utils.StringToUint64(limit)
+	}
+	return 10
 }
 
 func (x *SelefraBlock) Merge(other *SelefraBlock) (*SelefraBlock, *schema.Diagnostics) {

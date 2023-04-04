@@ -47,6 +47,8 @@ const (
 
 // ProjectLocalLifeCycleExecutorOptions The local life cycle of the project
 type ProjectLocalLifeCycleExecutorOptions struct {
+	// Gpt query string
+	Instruction map[string]interface{}
 
 	// project path
 	ProjectWorkspace string
@@ -110,7 +112,6 @@ func (x *ProjectLocalLifeCycleExecutor) Name() string {
 
 // Execute Actually execute the project
 func (x *ProjectLocalLifeCycleExecutor) Execute(ctx context.Context) *schema.Diagnostics {
-
 	defer func() {
 
 		// close cloud
@@ -245,8 +246,8 @@ func (x *ProjectLocalLifeCycleExecutor) fixDsn(ctx context.Context) bool {
 
 // Load the module to be apply
 func (x *ProjectLocalLifeCycleExecutor) loadModule(ctx context.Context) bool {
-
 	moduleLoaderOptions := &module_loader.LocalDirectoryModuleLoaderOptions{
+		Instruction: x.options.Instruction,
 		ModuleLoaderOptions: &module_loader.ModuleLoaderOptions{
 			Source:            x.options.ProjectWorkspace,
 			Version:           "",

@@ -15,11 +15,13 @@ import (
 // YamlFileToModuleParser Read a yaml file as a module, but the module is only for program convenience. There is no such file module; a module should at least be a folder
 type YamlFileToModuleParser struct {
 	yamlFilePath string
+	instruction  map[string]interface{}
 }
 
-func NewYamlFileToModuleParser(yamlFilePath string) *YamlFileToModuleParser {
+func NewYamlFileToModuleParser(yamlFilePath string, instruction map[string]interface{}) *YamlFileToModuleParser {
 	return &YamlFileToModuleParser{
 		yamlFilePath: yamlFilePath,
+		instruction:  instruction,
 	}
 }
 
@@ -62,6 +64,15 @@ func (x *YamlFileToModuleParser) Parse() (*module.Module, *schema.Diagnostics) {
 		}
 	}
 
+	if x.instruction != nil && x.instruction["gpt"] != "" {
+		yamlFileModule.RulesBlock = module.RulesBlock{
+			&module.RuleBlock{
+				Name:   "this it gpt",
+				Query:  x.instruction["gpt"].(string),
+				Output: "this is gpt",
+			},
+		}
+	}
 	return yamlFileModule, diagnostics
 }
 
