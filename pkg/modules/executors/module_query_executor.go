@@ -228,7 +228,9 @@ func (x *ModuleQueryExecutorWorker) execRulePlan(ctx context.Context, rulePlan *
 	}
 	// TODO log
 
-	x.sendMessage(schema.NewDiagnostics().AddInfo("Rule %s exec done", rulePlan.String()))
+	defer func() {
+		x.sendMessage(schema.NewDiagnostics().AddInfo("Rule %s exec done", rulePlan.String()))
+	}()
 }
 
 func isSql(query string) bool {
@@ -350,7 +352,6 @@ AND table_schema = '%s';`
 			fmt.Println(err)
 			return
 		}
-		fmt.Println(openaiApiKey, openaiMode, openaiLimit)
 	}
 }
 
@@ -711,7 +712,6 @@ func (x *ModuleQueryExecutorWorker) getRows(ctx context.Context, columnMap map[s
 			rows, d := infoRes.ReadRows(-1)
 			if rows != nil {
 				for _, row := range rows.SplitRowByRow() {
-					fmt.Println(row.String())
 					rs = append(rs, row)
 				}
 			}
@@ -736,7 +736,7 @@ func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema
 		var infoBlockResult []module.GptResponseBlock
 		err = json.Unmarshal([]byte(info), &infoBlockResult)
 		if err != nil {
-			fmt.Println(err.Error())
+			//fmt.Println(err.Error())
 			continue
 		}
 		for i := range infoBlockResult {
@@ -749,12 +749,14 @@ func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema
 			metablock.Remediation = infoBlockResult[i].Remediation
 			metablock.Severity = infoBlockResult[i].Severity
 			metablock.Tags = infoBlockResult[i].Tags
+
 			tempMap := make(map[string]interface{})
 			keys := row.GetColumnNames()
 
 			for i2 := range keys {
 				tempMap[keys[i2]], _ = row.Get(keys[i2])
 			}
+			tempMap["resource"] = infoBlockResult[i].Resource
 			tempMap["title"] = infoBlockResult[i].Title
 			tempMap["description"] = infoBlockResult[i].Description
 			tempMap["remediation"] = infoBlockResult[i].Remediation

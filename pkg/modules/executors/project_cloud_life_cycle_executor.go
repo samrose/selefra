@@ -215,11 +215,11 @@ func (x *ProjectCloudLifeCycleExecutor) initLogUploader(client *cloud_sdk.CloudC
 func (x *ProjectCloudLifeCycleExecutor) UploadIssue(ctx context.Context, r *RuleQueryResult) {
 
 	var consoleOutput strings.Builder
-	consoleOutput.WriteString(fmt.Sprintf("Rule name %s, ", r.RuleBlock.Name))
+	consoleOutput.WriteString(fmt.Sprintf("Rule name %s--", r.RuleBlock.Name))
 	if r.RuleBlock.MetadataBlock != nil && r.RuleBlock.MetadataBlock.Id != "" {
 		consoleOutput.WriteString(fmt.Sprintf("id %s, ", r.RuleBlock.MetadataBlock.Id))
 	}
-	consoleOutput.WriteString(fmt.Sprintf("output %s", r.RuleBlock.Output))
+	consoleOutput.WriteString(fmt.Sprintf("%s.", r.RuleBlock.Output))
 	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo(consoleOutput.String()))
 	x.UploadLog(ctx, schema.NewDiagnostics().AddInfo(consoleOutput.String()))
 
