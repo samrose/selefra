@@ -71,6 +71,100 @@ The configuration is:
 The question is:
 %s
 `,
+	"finopsTable": `You are a public cloud and SaaS cost optimization expert. What you need to do is to determine which database tables and fields will be used in the analysis question based on the tables and security analysis questions I provided, and return them in the following format
+		Table1,Table2,Table3
+
+		Do not output Answer and line breaks
+		
+The question is:
+%s
+
+Tables is:
+%s
+`,
+	"finopsColumn": `You are a public cloud and SaaS cost optimization expert. What you need to do is to determine which database tables and fields will be used in the analysis question based on the tables and security analysis questions I provided, and return them in the following format
+
+Column1,Column2,Column3
+
+Do not output Answer and line breaks
+
+Do not return duplicate fields
+
+Do not appear fields that do not exist in the original field
+
+The question is:
+%s
+
+Table is:
+%s
+
+Column is:
+%s
+`,
+	"finops": `You are a public cloud and SaaS cost optimization expert. I will give you a section of %s's %s configuration information data and security analysis question. Please help me detect whether there is a security vulnerability in this configuration. If there is a security problem, please return the vulnerability title, vulnerability description, repair recommendation for the complete executable steps, security level, Tags of the security compliance framework, and return it in the following example format:
+[
+	{
+		"title":"",
+		"description":"",
+		"remediation": "",
+		"severity": "",
+		"tags":[""],
+		"resource":"",
+	}
+]
+The configuration is:
+%s
+
+The question is:
+%s
+`,
+	"architectureTable": `You are a public cloud and SaaS technology architect. What you need to do is to determine which database tables and fields will be used in the analysis question based on the tables and security analysis questions I provided, and return them in the following format
+		Table1,Table2,Table3
+
+		Do not output Answer and line breaks
+		
+The question is:
+%s
+
+Tables is:
+%s
+`,
+	"architectureColumn": `You are a public cloud and SaaS technology architect. What you need to do is to determine which database tables and fields will be used in the analysis question based on the tables and security analysis questions I provided, and return them in the following format
+
+Column1,Column2,Column3
+
+Do not output Answer and line breaks
+
+Do not return duplicate fields
+
+Do not appear fields that do not exist in the original field
+
+The question is:
+%s
+
+Table is:
+%s
+
+Column is:
+%s
+`,
+	"architecture": `You are a public cloud and SaaS technology architect. I will give you a section of %s's %s configuration information data and security analysis question. Please help me detect whether there is a security vulnerability in this configuration. If there is a security problem, please return the vulnerability title, vulnerability description, repair recommendation for the complete executable steps, security level, Tags of the security compliance framework, and return it in the following example format:
+[
+	{
+		"title":"",
+		"description":"",
+		"remediation": "",
+		"severity": "",
+		"tags":[""],
+		"resource":"",
+	}
+]
+The configuration is:
+%s
+
+The question is:
+%s
+`,
 }
 
 func OpenApiClient(ctx context.Context, sk string, mode string, promptType string, args ...any) (string, error) {
@@ -82,7 +176,7 @@ func OpenApiClient(ctx context.Context, sk string, mode string, promptType strin
 		prompt := fmt.Sprintf(promptMap[promptType], args...)
 		return GPT3Func(ctx, client, prompt)
 	case GPT4:
-		return "", errors.New("gpt-4 not support")
+		return GPT4TurboFunc(ctx, client, fmt.Sprintf(promptMap[promptType], args...))
 	}
 	return "", errors.New("mode not found")
 }
@@ -92,6 +186,28 @@ func GPT3Dot5TurboFunc(ctx context.Context, client *openai.Client, prompt string
 		ctx,
 		openai.ChatCompletionRequest{
 			Model:     openai.GPT3Dot5Turbo,
+			MaxTokens: 512,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: prompt,
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		fmt.Printf("ChatCompletion error: %v\n", err)
+		return "", err
+	}
+	return strings.Trim(resp.Choices[0].Message.Content, "\n"), nil
+}
+
+func GPT4TurboFunc(ctx context.Context, client *openai.Client, prompt string) (string, error) {
+	resp, err := client.CreateChatCompletion(
+		ctx,
+		openai.ChatCompletionRequest{
+			Model:     openai.GPT4,
 			MaxTokens: 512,
 			Messages: []openai.ChatCompletionMessage{
 				{

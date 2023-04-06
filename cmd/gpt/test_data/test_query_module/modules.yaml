@@ -26,17 +26,15 @@ selefra:
 
 
 providers:
-  - name: aws_001
-    cache: 1d
+  - name: aws
+    cache: 7d
     provider: aws
     foo-count: 10
     bar-count: 10
     sleep-seconds: 1
     max_goroutines: 1
-  - name: aws_002
-    cache: 1d
-    provider: aws
-    foo-count: 10
-    bar-count: 10
-    sleep-seconds: 1
-    max_goroutines: 1
+
+#rules:
+#  - name: bucket_versioning_is_disabled
+#    query: "Please help me analyze the vulnerabilities in AWS S3?"
+#    output: "S3 bucket versioning is disabled, arn: {{.arn}}"

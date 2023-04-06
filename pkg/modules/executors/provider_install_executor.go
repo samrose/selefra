@@ -85,11 +85,11 @@ func (x *ProviderInstallExecutor) executePlan(ctx context.Context, plan *planner
 		return diagnostics
 	}
 	if installed {
-		x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Provider %s has installed", plan.String()))
+		x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\tProvider %s has installed", plan.String()))
 		return nil
 	}
 
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Begin downloading provider %s ...", plan.String()))
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\tBegin downloading provider %s ...", plan.String()))
 
 	x.localProviderManager.InstallProvider(ctx, &local_providers_manager.InstallProvidersOptions{
 		RequiredProvider: requiredProvider,

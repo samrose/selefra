@@ -1,4 +1,4 @@
-package apply
+package gpt
 
 import (
 	"context"
@@ -21,17 +21,29 @@ func NewGPTCmd() *cobra.Command {
 		PersistentPreRun: global.DefaultWrappedInit(),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			query, _ := cmd.PersistentFlags().GetString("query")
+			openaiApiKey, _ := cmd.PersistentFlags().GetString("openai_api_key")
+			openaiMode, _ := cmd.PersistentFlags().GetString("openai_mode")
+			openaiLimit, _ := cmd.PersistentFlags().GetUint64("openai_limit")
 			//projectWorkspace := "./test_data/test_query_module"
 			//downloadWorkspace := "./test_download"
 
 			projectWorkspace := "./"
 			downloadWorkspace, _ := config.GetDefaultDownloadCacheDirectory()
 
-			return Gpt(cmd.Context(), query, projectWorkspace, downloadWorkspace)
+			instructions := make(map[string]interface{})
+			instructions["query"] = query
+			instructions["openai_api_key"] = openaiApiKey
+			instructions["openai_mode"] = openaiMode
+			instructions["openai_limit"] = openaiLimit
+
+			return Gpt(cmd.Context(), instructions, projectWorkspace, downloadWorkspace)
 		},
 	}
 
-	cmd.PersistentFlags().StringP("relevance", "r", "", "associate to selefra cloud project, use only after login")
+	cmd.PersistentFlags().StringP("query", "q", "", "the problem you want to analyze")
+	cmd.PersistentFlags().StringP("openai_api_key", "k", "", "your openai_api_key")
+	cmd.PersistentFlags().StringP("openai_mode", "m", "", "what mode to use for analysis\n")
+	cmd.PersistentFlags().Uint64P("openai_limit", "i", 10, "how many pieces were analyzed in total")
 
 	cmd.SetHelpFunc(cmd.HelpFunc())
 	return cmd
@@ -40,7 +52,7 @@ func NewGPTCmd() *cobra.Command {
 // ------------------------------------------------- --------------------------------------------------------------------
 
 // Apply a project
-func Gpt(ctx context.Context, query, projectWorkspace, downloadWorkspace string) error {
+func Gpt(ctx context.Context, instructions map[string]interface{}, projectWorkspace, downloadWorkspace string) error {
 
 	hasError := atomic.Bool{}
 	messageChannel := message.NewChannel[*schema.Diagnostics](func(index int, message *schema.Diagnostics) {
@@ -50,8 +62,7 @@ func Gpt(ctx context.Context, query, projectWorkspace, downloadWorkspace string)
 			}
 		}
 	})
-	instructions := make(map[string]interface{})
-	instructions["gpt"] = query
+
 	d := executors.NewProjectLocalLifeCycleExecutor(&executors.ProjectLocalLifeCycleExecutorOptions{
 		Instruction:          instructions,
 		ProjectWorkspace:     projectWorkspace,

@@ -137,17 +137,17 @@ func (x *ProviderFetchExecutor) Execute(ctx context.Context) *schema.Diagnostics
 	}()
 
 	// TODO Scheduling algorithm, Minimize waiting
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Make fetch queue begin..."))
+	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Make fetch queue begin..."))
 	fetchPlanChannel := make(chan *planner.ProviderFetchPlan, len(x.options.Plans))
 	for _, plan := range x.options.Plans {
 		fetchPlanChannel <- plan
 	}
 	close(fetchPlanChannel)
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Make fetch queue done..."))
+	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Make fetch queue done..."))
 
 	// The concurrent pull starts
 	providerInformationChannel := make(chan *shard.GetProviderInformationResponse, len(x.options.Plans))
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Run fetch worker, worker num %d...", x.options.WorkerNum))
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Run fetch worker..."))
 	wg := sync.WaitGroup{}
 	for i := uint64(0); i < x.options.WorkerNum; i++ {
 		wg.Add(1)
@@ -509,8 +509,10 @@ func (x *ProviderFetchExecutorWorker) addProviderNameForMessage(plan *planner.Pr
 		return nil
 	}
 	diagnostics := schema.NewDiagnostics()
-	for _, item := range d.GetDiagnosticSlice() {
-		diagnostics.AddDiagnostic(schema.NewDiagnostic(item.Level(), fmt.Sprintf("Provider %s say: %s", plan.String(), item.Content())))
+	if d.HasError() {
+		for _, item := range d.GetDiagnosticSlice() {
+			diagnostics.AddDiagnostic(schema.NewDiagnostic(item.Level(), fmt.Sprintf("Provider %s say: %s", plan.String(), item.Content())))
+		}
 	}
 	return diagnostics
 }

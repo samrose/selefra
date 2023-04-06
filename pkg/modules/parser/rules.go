@@ -15,7 +15,7 @@ const (
 )
 
 func (x *YamlFileToModuleParser) parseRulesBlock(rulesBlockKeyNode, rulesBlockValueNode *yaml.Node, diagnostics *schema.Diagnostics) module.RulesBlock {
-	if x.instruction != nil && x.instruction["gpt"] == "" {
+	if x.instruction != nil && x.instruction["query"] == "" {
 		return nil
 	}
 	// modules must be an array element

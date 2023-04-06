@@ -74,6 +74,15 @@ func (x RulesBlock) SetNodeLocation(selector string, nodeLocation *NodeLocation)
 
 // ------------------------------------------------- --------------------------------------------------------------------
 
+type GptResponseBlock struct {
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Remediation string   `json:"remediation"`
+	Severity    string   `json:"severity"`
+	Tags        []string `json:"tags"`
+	Resource    string   `json:"resource"`
+}
+
 // RuleBlock Represents a rule block
 type RuleBlock struct {
 

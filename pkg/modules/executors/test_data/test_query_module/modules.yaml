@@ -19,6 +19,6 @@ selefra:
 
 providers:
   - name: aws
-    cache: 3d
+    cache: 7d
     provider: aws
     max_goroutines: 100

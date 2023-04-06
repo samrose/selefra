@@ -275,6 +275,7 @@ func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePl
 
 		typeRes, err := utils.OpenApiClient(ctx, openaiApiKey, openaiMode, "type", rulePlan.Query)
 		if err != nil {
+			fmt.Println(err.Error())
 			return
 		}
 		tar := strings.Split(typeRes, " & ")
@@ -624,6 +625,7 @@ func (x *ModuleQueryExecutorWorker) filterTables(ctx context.Context, tableNames
 		if err != nil {
 			fmt.Println(err)
 		}
+		table = strings.Trim(table, " ")
 		tables = append(tables, strings.Split(table, ",")...)
 	}
 	return tables, nil
@@ -672,6 +674,9 @@ WHERE table_name in (%s) AND table_schema = '%s';
 
 	for s := range columnMap {
 		columnMap[s] = utils.RemoveRepeatedElement(columnMap[s])
+		if len(columnMap[s]) == 0 {
+			continue
+		}
 		Columns, err := utils.OpenApiClient(ctx, openaiApiKey, openaiMode, ty+"Column", rulePlan.Query, s, strings.Join(columnMap[s], ","))
 		if err != nil {
 			fmt.Println(err)
@@ -728,33 +733,57 @@ func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema
 			fmt.Println(err)
 		}
 
-		var infoBlockResult []*module.RuleBlock
-
-		b, err := json.Marshal(info)
+		var infoBlockResult []module.GptResponseBlock
+		err = json.Unmarshal([]byte(info), &infoBlockResult)
 		if err != nil {
-			break
+			fmt.Println(err.Error())
+			continue
 		}
-		err = json.Unmarshal(b, &infoBlockResult)
+		for i := range infoBlockResult {
+			if rulePlan.MetadataBlock == nil {
+				rulePlan.MetadataBlock = &module.RuleMetadataBlock{}
+			}
+			metablock := rulePlan.MetadataBlock
+			metablock.Title = infoBlockResult[i].Title
+			metablock.Description = infoBlockResult[i].Description
+			metablock.Remediation = infoBlockResult[i].Remediation
+			metablock.Severity = infoBlockResult[i].Severity
+			metablock.Tags = infoBlockResult[i].Tags
+			tempMap := make(map[string]interface{})
+			keys := row.GetColumnNames()
 
-		//rulePlan.Output, _ = fmtTemplate(rulePlan.Output, row)
-		ruleBlockResult := &module.RuleBlock{
-			Name:          rulePlan.Name,
-			Query:         rulePlan.Query,
-			Labels:        rulePlan.Labels,
-			MetadataBlock: rulePlan.MetadataBlock,
-			Output:        info,
-		}
+			for i2 := range keys {
+				tempMap[keys[i2]], _ = row.Get(keys[i2])
+			}
+			tempMap["title"] = infoBlockResult[i].Title
+			tempMap["description"] = infoBlockResult[i].Description
+			tempMap["remediation"] = infoBlockResult[i].Remediation
+			tempMap["severity"] = infoBlockResult[i].Severity
+			tempMap["tags"] = infoBlockResult[i].Tags
+			out, err := fmtTemplate(rulePlan.Output, tempMap)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			ruleBlockResult := &module.RuleBlock{
+				Name:          rulePlan.Name,
+				Query:         rulePlan.Query,
+				Labels:        rulePlan.Labels,
+				MetadataBlock: metablock,
+				Output:        out,
+			}
 
-		result := &RuleQueryResult{
-			Module:                rulePlan.Module,
-			RulePlan:              rulePlan,
-			RuleBlock:             ruleBlockResult,
-			Provider:              registry.NewProvider(providerContext.ProviderName, providerContext.ProviderVersion),
-			ProviderConfiguration: providerContext.ProviderConfiguration,
-			Schema:                providerContext.Schema,
-			Row:                   row,
+			result := &RuleQueryResult{
+				Module:                rulePlan.Module,
+				RulePlan:              rulePlan,
+				RuleBlock:             ruleBlockResult,
+				Provider:              registry.NewProvider(providerContext.ProviderName, providerContext.ProviderVersion),
+				ProviderConfiguration: providerContext.ProviderConfiguration,
+				Schema:                providerContext.Schema,
+				Row:                   row,
+			}
+			x.moduleQueryExecutor.options.RuleQueryResultChannel.Send(result)
 		}
-		x.moduleQueryExecutor.options.RuleQueryResultChannel.Send(result)
 	}
 	return nil
 }

@@ -96,8 +96,9 @@ func (x *InitCommandExecutor) Run(ctx context.Context) error {
 
 	//x.initModulesYaml()
 
-	cli_ui.Infof("Initializing workspace done.\n")
-
+	cli_ui.Infof("Selefra has been successfully initialized!\n")
+	cli_ui.Infof("Your new Selefra project \"%s\" was created!\n", selefraBlock.Name)
+	cli_ui.Infof("To perform an initial analysis, run selefra apply.\n")
 	return nil
 }
 
@@ -107,12 +108,12 @@ func (x *InitCommandExecutor) initHeaderOutput(providers []string) {
 	//for i := range providers {
 	//	cli_ui.Successln(" [✔]" + providers[i] + "\n")
 	//}
-	cli_ui.Infof(`Running with selefra-cli %s
+	cli_ui.Infof(`	Running with selefra-cli %s
 
-This command will walk you through creating a new Selefra project
+	This command will walk you through creating a new Selefra project
 
-Enter a value or leave blank to accept the (default), and press <ENTER>.
-Press ^C at any time to quit.`, version.Version)
+	Enter a value or leave blank to accept the (default), and press <ENTER>.
+	Press ^C at any time to quit.`, version.Version)
 	cli_ui.Infof("\n\n")
 }
 
@@ -276,9 +277,9 @@ func (x *InitCommandExecutor) initSelefraYaml(ctx context.Context, providerSlice
 	selefraFullPath := filepath.Join(utils.AbsPath(x.options.ProjectWorkspace), "selefra.yaml")
 	err = os.WriteFile(selefraFullPath, marshal, 0644)
 	if err != nil {
-		cli_ui.Errorf("Write %s error: %s \n", selefraFullPath, err.Error())
+		cli_ui.Errorf("\tWrite %s error: %s \n", selefraFullPath, err.Error())
 	} else {
-		cli_ui.Successf("Write %s success \n", selefraFullPath)
+		//cli_ui.Successf("\tWrite %s success \n", selefraFullPath)
 	}
 
 	return selefraBlock
@@ -318,7 +319,6 @@ func (x *InitCommandExecutor) getCloudBlock(projectName string) *module.CloudBlo
 //	}
 //}
 
-
 var rulesMap map[string]string
 
 func init() {
@@ -338,9 +338,9 @@ func (x *InitCommandExecutor) initRulesYaml(providerSlice []*registry.Provider) 
 		ruleFullPath := filepath.Join(utils.AbsPath(x.options.ProjectWorkspace), fmt.Sprintf("rules_%s.yaml", provider.Name))
 		err := os.WriteFile(ruleFullPath, []byte(ruleYamlString), 0644)
 		if err != nil {
-			cli_ui.Errorf("Write %s error: %s \n", ruleFullPath, err.Error())
+			cli_ui.Errorf("\tWrite %s error: %s \n", ruleFullPath, err.Error())
 		} else {
-			cli_ui.Successf("Write %s success \n", ruleFullPath)
+			//cli_ui.Successf("\tWrite %s success \n", ruleFullPath)
 		}
 	}
 }
@@ -384,9 +384,9 @@ func (x *InitCommandExecutor) initProvidersYaml(ctx context.Context, requiredPro
 	providerFullName := filepath.Join(utils.AbsPath(x.options.ProjectWorkspace), "providers.yaml")
 	err = os.WriteFile(providerFullName, marshal, 0644)
 	if err != nil {
-		cli_ui.Errorf("Write %s error: %s \n", providerFullName, err.Error())
+		cli_ui.Errorf("\tWrite %s error: %s \n", providerFullName, err.Error())
 	} else {
-		cli_ui.Successf("Write %s success \n", providerFullName)
+		//cli_ui.Successf("\tWrite %s success \n", providerFullName)
 	}
 }
 
@@ -467,7 +467,7 @@ func (x *InitCommandExecutor) makeProviders(ctx context.Context, requiredProvide
 	// convert required provider block to
 	for _, requiredProvider := range requiredProvidersBlock {
 
-		cli_ui.Infof("Begin install provider %s \n", requiredProvider.Source)
+		//cli_ui.Infof("Begin install provider %s \n", requiredProvider.Source)
 
 		providerInstallPlan := &planner.ProviderInstallPlan{
 			Provider: registry.NewProvider(requiredProvider.Name, requiredProvider.Version),
@@ -501,10 +501,10 @@ func (x *InitCommandExecutor) makeProviders(ctx context.Context, requiredProvide
 		if hasError.Load() {
 			return nil, false
 		}
-		cli_ui.Infof("Install provider %s success \n", requiredProvider.Source)
+		cli_ui.Infof("\tInstall %s@%s verified \n", requiredProvider.Source, requiredProvider.Version)
 
 		// init
-		cli_ui.Infof("Begin init provider %s... \n", requiredProvider.Source)
+		cli_ui.Infof("\tSynchronization %s@%s's config... \n", requiredProvider.Source, requiredProvider.Version)
 		configuration, b := x.getProviderInitConfiguration(ctx, executor.GetLocalProviderManager(), providerInstallPlan)
 		if !b {
 			return nil, false
@@ -519,7 +519,7 @@ func (x *InitCommandExecutor) makeProviders(ctx context.Context, requiredProvide
 
 		//fmt.Println("Provider Block: " + json_util.ToJsonString(providerBlock))
 
-		cli_ui.Infof("Init provider %s done \n", requiredProvider.Source)
+		//cli_ui.Infof("Init provider %s done \n", requiredProvider.Source)
 	}
 	return providersBlock, true
 }
@@ -528,7 +528,7 @@ func (x *InitCommandExecutor) makeProviders(ctx context.Context, requiredProvide
 func (x *InitCommandExecutor) getProviderInitConfiguration(ctx context.Context, localProviderManager *local_providers_manager.LocalProvidersManager, plan *planner.ProviderInstallPlan) (string, bool) {
 
 	// start & get information
-	cli_ui.Infof("Begin init provider %s \n", plan.String())
+	//cli_ui.Infof("Begin init provider %s \n", plan.String())
 
 	// Find the local path of the provider
 	localProvider := &local_providers_manager.LocalProvider{
@@ -558,7 +558,7 @@ func (x *InitCommandExecutor) getProviderInitConfiguration(ctx context.Context, 
 	// Close the provider at the end of the method execution
 	defer plug.Close()
 
-	cli_ui.Infof("Start provider %s success \n", plan.String())
+	//cli_ui.Infof("Start provider %s success \n", plan.String())
 
 	// Database connection option
 	storageOpt := postgresql_storage.NewPostgresqlStorageOptions(x.options.DSN)
@@ -593,7 +593,7 @@ func (x *InitCommandExecutor) getProviderInitConfiguration(ctx context.Context, 
 	if err := cli_ui.PrintDiagnostics(providerInitResponse.Diagnostics); err != nil {
 		return "", false
 	}
-	cli_ui.Infof("Provider %s init success \n", plan.String())
+	cli_ui.Infof("\tSynchronization %s 's config successful \n", plan.String())
 
 	// Get information about the started provider
 	information, err := pluginProvider.GetProviderInformation(ctx, &shard.GetProviderInformationRequest{})

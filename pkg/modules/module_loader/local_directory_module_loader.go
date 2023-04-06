@@ -20,7 +20,7 @@ import (
 // LocalDirectoryModuleLoaderOptions Option when loading modules from a local directory
 type LocalDirectoryModuleLoaderOptions struct {
 	*ModuleLoaderOptions
-	Instruction map[string]interface{} `json:"gpt" yaml:"gpt"`
+	Instruction map[string]interface{} `json:"instruction" yaml:"instruction"`
 	// Directory where the module resides Directory
 	ModuleDirectory string `json:"module-directory" yaml:"module-directory"`
 }

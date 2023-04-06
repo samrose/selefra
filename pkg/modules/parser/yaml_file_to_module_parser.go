@@ -53,6 +53,18 @@ func (x *YamlFileToModuleParser) Parse() (*module.Module, *schema.Diagnostics) {
 		switch key.Value {
 		case SelefraBlockFieldName:
 			yamlFileModule.SelefraBlock = x.parseSelefraBlock(key, value, diagnostics)
+			if x.instruction != nil {
+
+				if x.instruction["openai_api_key"] != "" {
+					yamlFileModule.SelefraBlock.OpenaiApiKey = x.instruction["openai_api_key"].(string)
+				}
+				if x.instruction["openai_mode"] != "" {
+					yamlFileModule.SelefraBlock.OpenaiMode = x.instruction["openai_mode"].(string)
+				}
+				if x.instruction["openai_limit"] != 0 {
+					yamlFileModule.SelefraBlock.OpenaiLimit = x.instruction["openai_limit"].(uint64)
+				}
+			}
 		case VariablesBlockName:
 			yamlFileModule.VariablesBlock = x.parseVariablesBlock(key, value, diagnostics)
 		case ProvidersBlockName:
@@ -62,15 +74,17 @@ func (x *YamlFileToModuleParser) Parse() (*module.Module, *schema.Diagnostics) {
 		case RulesBlockName:
 			yamlFileModule.RulesBlock = x.parseRulesBlock(key, value, diagnostics)
 		}
-	}
 
-	if x.instruction != nil && x.instruction["gpt"] != "" {
-		yamlFileModule.RulesBlock = module.RulesBlock{
-			&module.RuleBlock{
-				Name:   "this it gpt",
-				Query:  x.instruction["gpt"].(string),
-				Output: "this is gpt",
-			},
+		if x.instruction != nil {
+			if x.instruction["query"] != nil {
+				yamlFileModule.RulesBlock = module.RulesBlock{
+					&module.RuleBlock{
+						Name:   "this it gpt",
+						Query:  x.instruction["query"].(string),
+						Output: "this is gpt,title is:{{.title}}\ndescription is: {{.description}}\nremediation is: {{.remediation}}\nseverity is:{{.severity}}\ntags is: {{.tags}}\n",
+					},
+				}
+			}
 		}
 	}
 	return yamlFileModule, diagnostics

@@ -21,7 +21,11 @@ func TestModuleQueryExecutor_Execute(t *testing.T) {
 	})
 
 	Instructions := make(map[string]interface{})
-	Instructions["gpt"] = "Please help me analyze the vulnerabilities in AWS S3?"
+	Instructions["query"] = "Please help me analyze the vulnerabilities in AWS S3?"
+	Instructions["openai_api_key"] = "xx"
+	Instructions["openai_mode"] = "gpt-3.5"
+	Instructions["openai_limit"] = uint64(10)
+
 	d := NewProjectLocalLifeCycleExecutor(&ProjectLocalLifeCycleExecutorOptions{
 		Instruction:                          Instructions,
 		ProjectWorkspace:                     projectWorkspace,
