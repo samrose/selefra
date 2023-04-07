@@ -360,6 +360,7 @@ func (x *ProjectLocalLifeCycleExecutor) fetch(ctx context.Context, providersInst
 // Start querying the policy and output the query results to the console and upload them to the cloud
 func (x *ProjectLocalLifeCycleExecutor) query(ctx context.Context, fetchExecutor *ProviderFetchExecutor, providerFetchPlans planner.ProvidersFetchPlan) bool {
 	plan, d := planner.MakeModuleQueryPlan(ctx, &planner.ModulePlannerOptions{
+		Instruction:        x.options.Instruction,
 		Module:             x.rootModule,
 		TableToProviderMap: fetchExecutor.GetTableToProviderMap(),
 	})

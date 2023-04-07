@@ -18,6 +18,7 @@ func MakeModuleQueryPlan(ctx context.Context, options *ModulePlannerOptions) (*M
 
 // ModulePlan Represents the execution plan of a module
 type ModulePlan struct {
+	Instruction map[string]interface{}
 
 	// Which module is this execution plan generated for
 	*module.Module
@@ -49,7 +50,7 @@ type ModulePlan struct {
 
 // ModulePlannerOptions Options when creating the Module Planner
 type ModulePlannerOptions struct {
-
+	Instruction map[string]interface{}
 	// make plan for which module
 	Module *module.Module
 
@@ -86,7 +87,8 @@ func (x *ModulePlanner) buildModulePlanner(ctx context.Context, module *module.M
 	diagnostics := schema.NewDiagnostics()
 
 	modulePlan := &ModulePlan{
-		Module: module,
+		Instruction: x.options.Instruction,
+		Module:      module,
 		// Inherits the scope of the parent module
 		ModuleScope:    moduleScope,
 		SubModulesPlan: nil,

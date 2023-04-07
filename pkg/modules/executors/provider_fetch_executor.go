@@ -153,9 +153,9 @@ func (x *ProviderFetchExecutor) Execute(ctx context.Context) *schema.Diagnostics
 		wg.Add(1)
 		NewProviderFetchExecutorWorker(x, fetchPlanChannel, providerInformationChannel, &wg).Run()
 	}
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Start fetch worker done, wait queue consumer done."))
+	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Start fetch worker done, wait queue consumer done."))
 	wg.Wait()
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Fetch queue done"))
+	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Fetch queue done"))
 
 	// Sort the provider information
 	close(providerInformationChannel)
@@ -246,7 +246,7 @@ func (x *ProviderFetchExecutorWorker) executePlan(ctx context.Context, plan *pla
 	// Close the provider at the end of the method execution
 	defer func() {
 		plug.Close()
-		x.sendMessage(schema.NewDiagnostics().AddInfo("Stop provider %s at %s ", plan.String(), localProviderMeta.ExecutableFilePath))
+		//x.sendMessage(schema.NewDiagnostics().AddInfo("Stop provider %s at %s ", plan.String(), localProviderMeta.ExecutableFilePath))
 	}()
 
 	x.sendMessage(x.addProviderNameForMessage(plan, schema.NewDiagnostics().AddInfo("Start provider %s success", plan.String())))
