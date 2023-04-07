@@ -5,6 +5,7 @@ import (
 	"github.com/selefra/selefra/cli_ui"
 	"github.com/selefra/selefra/cmd/apply"
 	"github.com/selefra/selefra/cmd/fetch"
+	"github.com/selefra/selefra/cmd/gpt"
 	initCmd "github.com/selefra/selefra/cmd/init"
 	"github.com/selefra/selefra/cmd/login"
 	"github.com/selefra/selefra/cmd/logout"
@@ -88,6 +89,7 @@ func init() {
 		apply.NewApplyCmd(),
 		login.NewLoginCmd(),
 		logout.NewLogoutCmd(),
+		gpt.NewGPTCmd(),
 	}
 
 	group["other"] = []*cobra.Command{

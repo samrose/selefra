@@ -7,7 +7,7 @@ rules:
         aws_s3_buckets AS a1 FULL
         OUTER JOIN aws_s3_bucket_cors_rules AS a2 ON a1.selefra_id = a2.aws_s3_buckets_selefra_id
       WHERE
-        aws_s3_buckets_selefra_id IS NULL; {{foobarbar}}
+        aws_s3_buckets_selefra_id IS NULL;
     labels:
       resource_account_id: '{{.account_id}}'
       resource_id: '{{.arn}}'

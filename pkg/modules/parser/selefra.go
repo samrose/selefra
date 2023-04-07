@@ -12,6 +12,9 @@ import (
 
 const (
 	SelefraBlockFieldName             = "selefra"
+	SelefraBlockOpenaiApiKeyName      = "openai_api_key"
+	SelefraBlockOpenaiModeName        = "openai_mode"
+	SelefraBlockOpenaiLimitName       = "openai_limit"
 	SelefraBlockNameFieldName         = "name"
 	SelefraBlockCLIVersionFieldName   = "cli_version"
 	SelefraBlockLogLevelFieldName     = "log_level"
@@ -42,6 +45,15 @@ func (x *YamlFileToModuleParser) parseSelefraBlock(selefraBlockKeyNode, selefraB
 
 		case SelefraBlockNameFieldName:
 			selefraBlock.Name = x.parseStringValueWithDiagnosticsAndSetLocation(selefraBlock, SelefraBlockNameFieldName, entry, blockPath, diagnostics)
+
+		case SelefraBlockOpenaiApiKeyName:
+			selefraBlock.OpenaiApiKey = x.parseStringValueWithDiagnosticsAndSetLocation(selefraBlock, SelefraBlockOpenaiApiKeyName, entry, blockPath, diagnostics)
+
+		case SelefraBlockOpenaiModeName:
+			selefraBlock.OpenaiMode = x.parseStringValueWithDiagnosticsAndSetLocation(selefraBlock, SelefraBlockOpenaiModeName, entry, blockPath, diagnostics)
+
+		case SelefraBlockOpenaiLimitName:
+			selefraBlock.OpenaiLimit = *x.parseUintValueWithDiagnosticsAndSetLocation(selefraBlock, SelefraBlockOpenaiLimitName, entry, blockPath, diagnostics)
 
 		case SelefraBlockCLIVersionFieldName:
 			selefraBlock.CliVersion = x.parseStringValueWithDiagnosticsAndSetLocation(selefraBlock, SelefraBlockCLIVersionFieldName, entry, blockPath, diagnostics)

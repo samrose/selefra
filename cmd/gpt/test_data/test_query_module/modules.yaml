@@ -1,0 +1,40 @@
+selefra:
+  openai_api_key: openkey
+  openai_mode: gpt-3.5
+  openai_limit: 10
+  cloud:
+    project: example_project
+    organization: example_org
+  #    hostname: app.selefra.io
+  connection:
+    type: postgres
+    username: postgres
+    password: pass
+    host: localhost
+    port: "5432"
+    database: postgres
+    sslmode: disable
+  name: example_project
+  cli_version: v0.0.1
+  providers:
+    - name: aws
+      source: aws
+      version: latest
+#    - name: gcp
+#      source: gcp
+#      version: ">=0.0.9,<=0.0.10"
+
+
+providers:
+  - name: aws
+    cache: 7d
+    provider: aws
+    foo-count: 10
+    bar-count: 10
+    sleep-seconds: 1
+    max_goroutines: 1
+
+#rules:
+#  - name: bucket_versioning_is_disabled
+#    query: "Please help me analyze the vulnerabilities in AWS S3?"
+#    output: "S3 bucket versioning is disabled, arn: {{.arn}}"

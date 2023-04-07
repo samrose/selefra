@@ -137,17 +137,17 @@ func (x *ProviderFetchExecutor) Execute(ctx context.Context) *schema.Diagnostics
 	}()
 
 	// TODO Scheduling algorithm, Minimize waiting
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Make fetch queue begin..."))
+	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Make fetch queue begin..."))
 	fetchPlanChannel := make(chan *planner.ProviderFetchPlan, len(x.options.Plans))
 	for _, plan := range x.options.Plans {
 		fetchPlanChannel <- plan
 	}
 	close(fetchPlanChannel)
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Make fetch queue done..."))
+	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Make fetch queue done..."))
 
 	// The concurrent pull starts
 	providerInformationChannel := make(chan *shard.GetProviderInformationResponse, len(x.options.Plans))
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Run fetch worker, worker num %d...", x.options.WorkerNum))
+	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Run fetch worker..."))
 	wg := sync.WaitGroup{}
 	for i := uint64(0); i < x.options.WorkerNum; i++ {
 		wg.Add(1)
@@ -462,13 +462,8 @@ func (x *ProviderFetchExecutorWorker) executePlan(ctx context.Context, plan *pla
 			x.sendMessage(x.addProviderNameForMessage(plan, schema.NewDiagnostics().AddErrorMsg(err.Error())))
 			return
 		}
-		//progbar.SetTotal(decl.Name+"@"+decl.Version, int64(res.TableCount))
-		//progbar.Current(decl.Name+"@"+decl.Version, int64(len(res.FinishedTables)), res.Table)
 		total = int64(res.TableCount)
 		if res.Diagnostics != nil {
-			//if res.Diagnostics.HasError() {
-			//	cli_ui.SaveLogToDiagnostic(res.Diagnostics.GetDiagnosticSlice())
-			//}
 			x.sendMessage(x.addProviderNameForMessage(plan, res.Diagnostics))
 		}
 
@@ -479,12 +474,12 @@ func (x *ProviderFetchExecutorWorker) executePlan(ctx context.Context, plan *pla
 
 		success = len(res.FinishedTables)
 		errorsN = 0
-
+		cli_ui.Infof("Provider %s resource fetch %d/%d, finished task count %d ...\r", plan.String(), success, total, recordCount)
 		x.sendMessage(x.addProviderNameForMessage(plan, schema.NewDiagnostics().AddInfo("Provider %s resource fetch %d/%d, finished task count %d ...", plan.String(), success, total, recordCount)))
 	}
 	_ = success
 	_ = total
-	//x.sendMessage(x.addProviderNameForMessage(plan, schema.NewDiagnostics().AddInfo("Provider %s fetch %d/%d, record count %d ...", plan.String(), success, total, recordCount)))
+	x.sendMessage(x.addProviderNameForMessage(plan, schema.NewDiagnostics().AddInfo("Provider %s fetch %d/%d, record count %d ...", plan.String(), success, total, recordCount)))
 	//progbar.ReceiverWait(decl.Name + "@" + decl.Version)
 	if errorsN > 0 {
 		//cli_ui.Errorf("\nPull complete! Total Resources pulled:%d        Errors: %d\n", success, errorsN)
@@ -509,8 +504,10 @@ func (x *ProviderFetchExecutorWorker) addProviderNameForMessage(plan *planner.Pr
 		return nil
 	}
 	diagnostics := schema.NewDiagnostics()
-	for _, item := range d.GetDiagnosticSlice() {
-		diagnostics.AddDiagnostic(schema.NewDiagnostic(item.Level(), fmt.Sprintf("Provider %s say: %s", plan.String(), item.Content())))
+	if d.HasError() {
+		for _, item := range d.GetDiagnosticSlice() {
+			diagnostics.AddDiagnostic(schema.NewDiagnostic(item.Level(), fmt.Sprintf("Provider %s say: %s", plan.String(), item.Content())))
+		}
 	}
 	return diagnostics
 }

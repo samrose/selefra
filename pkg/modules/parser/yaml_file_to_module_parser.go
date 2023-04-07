@@ -15,11 +15,13 @@ import (
 // YamlFileToModuleParser Read a yaml file as a module, but the module is only for program convenience. There is no such file module; a module should at least be a folder
 type YamlFileToModuleParser struct {
 	yamlFilePath string
+	instruction  map[string]interface{}
 }
 
-func NewYamlFileToModuleParser(yamlFilePath string) *YamlFileToModuleParser {
+func NewYamlFileToModuleParser(yamlFilePath string, instruction map[string]interface{}) *YamlFileToModuleParser {
 	return &YamlFileToModuleParser{
 		yamlFilePath: yamlFilePath,
+		instruction:  instruction,
 	}
 }
 
@@ -51,6 +53,17 @@ func (x *YamlFileToModuleParser) Parse() (*module.Module, *schema.Diagnostics) {
 		switch key.Value {
 		case SelefraBlockFieldName:
 			yamlFileModule.SelefraBlock = x.parseSelefraBlock(key, value, diagnostics)
+			if x.instruction != nil {
+				if x.instruction["openai_api_key"] != "" {
+					yamlFileModule.SelefraBlock.OpenaiApiKey = x.instruction["openai_api_key"].(string)
+				}
+				if x.instruction["openai_mode"] != "" {
+					yamlFileModule.SelefraBlock.OpenaiMode = x.instruction["openai_mode"].(string)
+				}
+				if x.instruction["openai_limit"] != 0 {
+					yamlFileModule.SelefraBlock.OpenaiLimit = x.instruction["openai_limit"].(uint64)
+				}
+			}
 		case VariablesBlockName:
 			yamlFileModule.VariablesBlock = x.parseVariablesBlock(key, value, diagnostics)
 		case ProvidersBlockName:
@@ -58,10 +71,21 @@ func (x *YamlFileToModuleParser) Parse() (*module.Module, *schema.Diagnostics) {
 		case ModulesBlockName:
 			yamlFileModule.ModulesBlock = x.parseModulesBlock(key, value, diagnostics)
 		case RulesBlockName:
+			if x.instruction != nil {
+				if x.instruction["query"] != nil {
+					yamlFileModule.RulesBlock = module.RulesBlock{
+						&module.RuleBlock{
+							Name:   "CloudChat",
+							Query:  x.instruction["query"].(string),
+							Output: "{{.resource}},{{.title}}",
+						},
+					}
+					break
+				}
+			}
 			yamlFileModule.RulesBlock = x.parseRulesBlock(key, value, diagnostics)
 		}
 	}
-
 	return yamlFileModule, diagnostics
 }
 

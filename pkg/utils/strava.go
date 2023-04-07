@@ -6,6 +6,11 @@ import (
 	"strconv"
 )
 
+func StringToUint64(string2 string) uint64 {
+	u, _ := strconv.ParseUint(string2, 10, 64)
+	return u
+}
+
 func Strava(value interface{}) string {
 	var key string
 	if value == nil {
@@ -63,4 +68,21 @@ func Strava(value interface{}) string {
 	}
 
 	return key
+}
+
+func RemoveRepeatedElement(arr []string) (newArr []string) {
+	newArr = make([]string, 0)
+	for i := 0; i < len(arr); i++ {
+		repeat := false
+		for j := i + 1; j < len(arr); j++ {
+			if arr[i] == arr[j] {
+				repeat = true
+				break
+			}
+		}
+		if !repeat {
+			newArr = append(newArr, arr[i])
+		}
+	}
+	return
 }

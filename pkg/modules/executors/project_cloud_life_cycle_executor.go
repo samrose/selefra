@@ -84,9 +84,9 @@ func (x *ProjectCloudLifeCycleExecutor) InitCloudClient(ctx context.Context) boo
 
 	// 1. create cloud client
 	cloudServerHost := x.getServerHost()
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Login to selefra cloud %s", cloudServerHost))
+	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Login to selefra cloud %s", cloudServerHost))
 	cloudClient, d := cloud_sdk.NewCloudClient(cloudServerHost)
-	x.options.MessageChannel.Send(d)
+	//x.options.MessageChannel.Send(d)
 	if utils.HasError(d) {
 		return false
 	}
@@ -215,11 +215,11 @@ func (x *ProjectCloudLifeCycleExecutor) initLogUploader(client *cloud_sdk.CloudC
 func (x *ProjectCloudLifeCycleExecutor) UploadIssue(ctx context.Context, r *RuleQueryResult) {
 
 	var consoleOutput strings.Builder
-	consoleOutput.WriteString(fmt.Sprintf("Rule name %s, ", r.RuleBlock.Name))
+	consoleOutput.WriteString(fmt.Sprintf("Rule name %s--", r.RuleBlock.Name))
 	if r.RuleBlock.MetadataBlock != nil && r.RuleBlock.MetadataBlock.Id != "" {
 		consoleOutput.WriteString(fmt.Sprintf("id %s, ", r.RuleBlock.MetadataBlock.Id))
 	}
-	consoleOutput.WriteString(fmt.Sprintf("output %s", r.RuleBlock.Output))
+	consoleOutput.WriteString(fmt.Sprintf("%s.", r.RuleBlock.Output))
 	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo(consoleOutput.String()))
 	x.UploadLog(ctx, schema.NewDiagnostics().AddInfo(consoleOutput.String()))
 
