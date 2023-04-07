@@ -129,7 +129,7 @@ func (x *LocalDirectoryModuleLoader) Load(ctx context.Context) (*module.Module, 
 	}
 
 	// Print phased results
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("load module %s success", x.options.BuildFullName()))
+	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("load module %s success", x.options.BuildFullName()))
 
 	// load sub modules
 	subModuleSlice, loadSuccess := x.loadSubModules(ctx, finalModule.ModulesBlock)

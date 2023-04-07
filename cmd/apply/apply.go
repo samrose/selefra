@@ -20,17 +20,18 @@ func NewApplyCmd() *cobra.Command {
 		Long:             "Analyze infrastructure",
 		PersistentPreRun: global.DefaultWrappedInit(),
 		RunE: func(cmd *cobra.Command, args []string) error {
-
+			output, _ := cmd.PersistentFlags().GetString("output")
 			//projectWorkspace := "./test_data/test_query_module"
 			//downloadWorkspace := "./test_download"
-
+			instructions := make(map[string]interface{})
+			instructions["output"] = output
 			projectWorkspace := "./"
 			downloadWorkspace, _ := config.GetDefaultDownloadCacheDirectory()
 
-			return Apply(cmd.Context(), projectWorkspace, downloadWorkspace)
+			return Apply(cmd.Context(), instructions, projectWorkspace, downloadWorkspace)
 		},
 	}
-
+	cmd.PersistentFlags().StringP("output", "p", "", "display content format")
 	cmd.SetHelpFunc(cmd.HelpFunc())
 	return cmd
 }
@@ -38,7 +39,7 @@ func NewApplyCmd() *cobra.Command {
 // ------------------------------------------------- --------------------------------------------------------------------
 
 // Apply a project
-func Apply(ctx context.Context, projectWorkspace, downloadWorkspace string) error {
+func Apply(ctx context.Context, instructions map[string]interface{}, projectWorkspace, downloadWorkspace string) error {
 
 	hasError := atomic.Bool{}
 	messageChannel := message.NewChannel[*schema.Diagnostics](func(index int, message *schema.Diagnostics) {
@@ -49,6 +50,7 @@ func Apply(ctx context.Context, projectWorkspace, downloadWorkspace string) erro
 		}
 	})
 	d := executors.NewProjectLocalLifeCycleExecutor(&executors.ProjectLocalLifeCycleExecutorOptions{
+		Instruction:          instructions,
 		ProjectWorkspace:     projectWorkspace,
 		DownloadWorkspace:    downloadWorkspace,
 		MessageChannel:       messageChannel,

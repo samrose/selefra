@@ -2,6 +2,7 @@ package gpt
 
 import (
 	"context"
+	"errors"
 	"github.com/selefra/selefra-provider-sdk/provider/schema"
 	"github.com/selefra/selefra/cli_ui"
 	"github.com/selefra/selefra/config"
@@ -24,6 +25,8 @@ func NewGPTCmd() *cobra.Command {
 			openaiApiKey, _ := cmd.PersistentFlags().GetString("openai_api_key")
 			openaiMode, _ := cmd.PersistentFlags().GetString("openai_mode")
 			openaiLimit, _ := cmd.PersistentFlags().GetUint64("openai_limit")
+			output, _ := cmd.PersistentFlags().GetString("output")
+
 			//projectWorkspace := "./test_data/test_query_module"
 			//downloadWorkspace := "./test_download"
 
@@ -35,12 +38,18 @@ func NewGPTCmd() *cobra.Command {
 			instructions["openai_api_key"] = openaiApiKey
 			instructions["openai_mode"] = openaiMode
 			instructions["openai_limit"] = openaiLimit
+			instructions["output"] = output
+
+			if instructions["query"] == nil || instructions["query"] == "" {
+				return errors.New("query is required")
+			}
 
 			return Gpt(cmd.Context(), instructions, projectWorkspace, downloadWorkspace)
 		},
 	}
 
 	cmd.PersistentFlags().StringP("query", "q", "", "the problem you want to analyze")
+	cmd.PersistentFlags().StringP("output", "p", "", "display content format")
 	cmd.PersistentFlags().StringP("openai_api_key", "k", "", "your openai_api_key")
 	cmd.PersistentFlags().StringP("openai_mode", "m", "", "what mode to use for analysis\n")
 	cmd.PersistentFlags().Uint64P("openai_limit", "i", 10, "how many pieces were analyzed in total")
@@ -83,7 +92,7 @@ func Gpt(ctx context.Context, instructions map[string]interface{}, projectWorksp
 		cli_ui.Errorln("Gpt failed")
 		return err
 	} else {
-		cli_ui.Infoln("Gpt done")
+		cli_ui.Infoln("Selefra Exit")
 		return nil
 	}
 }

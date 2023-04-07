@@ -26,7 +26,7 @@ import (
 
 // RuleQueryResult Indicates the query result of a rule
 type RuleQueryResult struct {
-
+	Instructions map[string]interface{}
 	// The index number of the current task
 	Index int
 
@@ -124,7 +124,6 @@ func (x *ModuleQueryExecutor) Name() string {
 // ------------------------------------------------- --------------------------------------------------------------------
 
 func (x *ModuleQueryExecutor) Execute(ctx context.Context) *schema.Diagnostics {
-
 	defer func() {
 		x.options.MessageChannel.SenderWaitAndClose()
 		x.options.RuleQueryResultChannel.SenderWaitAndClose()
@@ -229,7 +228,7 @@ func (x *ModuleQueryExecutorWorker) execRulePlan(ctx context.Context, rulePlan *
 	// TODO log
 
 	defer func() {
-		x.sendMessage(schema.NewDiagnostics().AddInfo("Rule %s exec done", rulePlan.String()))
+		//x.sendMessage(schema.NewDiagnostics().AddInfo("Rule %s exec done", rulePlan.String()))
 	}()
 }
 
@@ -373,6 +372,7 @@ func (x *ModuleQueryExecutorWorker) processRuleRow(ctx context.Context, rulePlan
 	}
 
 	result := &RuleQueryResult{
+		Instructions:          x.moduleQueryExecutor.options.Plan.Instruction,
 		Module:                rulePlan.Module,
 		RulePlan:              rulePlan,
 		RuleBlock:             ruleBlockResult,
@@ -744,12 +744,13 @@ func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema
 				rulePlan.MetadataBlock = &module.RuleMetadataBlock{}
 			}
 			metablock := rulePlan.MetadataBlock
+
 			metablock.Title = infoBlockResult[i].Title
 			metablock.Description = infoBlockResult[i].Description
 			metablock.Remediation = infoBlockResult[i].Remediation
 			metablock.Severity = infoBlockResult[i].Severity
 			metablock.Tags = infoBlockResult[i].Tags
-
+			metablock.Author = "Selefra"
 			tempMap := make(map[string]interface{})
 			keys := row.GetColumnNames()
 
@@ -776,6 +777,7 @@ func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema
 			}
 
 			result := &RuleQueryResult{
+				Instructions:          x.moduleQueryExecutor.options.Plan.Instruction,
 				Module:                rulePlan.Module,
 				RulePlan:              rulePlan,
 				RuleBlock:             ruleBlockResult,
@@ -784,6 +786,7 @@ func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema
 				Schema:                providerContext.Schema,
 				Row:                   row,
 			}
+
 			x.moduleQueryExecutor.options.RuleQueryResultChannel.Send(result)
 		}
 	}

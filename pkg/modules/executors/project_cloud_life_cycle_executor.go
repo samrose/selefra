@@ -2,6 +2,7 @@ package executors
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/selefra/selefra-provider-sdk/provider/schema"
 	"github.com/selefra/selefra/cli_ui"
@@ -213,15 +214,38 @@ func (x *ProjectCloudLifeCycleExecutor) initLogUploader(client *cloud_sdk.CloudC
 
 // UploadIssue add issue to send cloud queue
 func (x *ProjectCloudLifeCycleExecutor) UploadIssue(ctx context.Context, r *RuleQueryResult) {
-
-	var consoleOutput strings.Builder
-	consoleOutput.WriteString(fmt.Sprintf("Rule name %s--", r.RuleBlock.Name))
-	if r.RuleBlock.MetadataBlock != nil && r.RuleBlock.MetadataBlock.Id != "" {
-		consoleOutput.WriteString(fmt.Sprintf("id %s, ", r.RuleBlock.MetadataBlock.Id))
+	var t = "default"
+	if r.Instructions != nil && r.Instructions["output"] != "" {
+		if s, ok := r.Instructions["output"].(string); ok {
+			t = strings.ToLower(s)
+		}
 	}
-	consoleOutput.WriteString(fmt.Sprintf("%s.", r.RuleBlock.Output))
-	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo(consoleOutput.String()))
-	x.UploadLog(ctx, schema.NewDiagnostics().AddInfo(consoleOutput.String()))
+	switch t {
+	case "json":
+		m := make(map[string]interface{})
+		m["schema"] = r.Schema
+		m["policy"] = r.RuleBlock.Query
+		m["labels"] = r.RuleBlock.Labels
+		m["metadata"] = r.RuleBlock.MetadataBlock
+		m["output"] = r.RuleBlock.Output
+		jsonBytes, err := json.MarshalIndent(m, "", "  ")
+		if err != nil {
+			fmt.Println("JSON marshal error:", err)
+			return
+		}
+		x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo(string(jsonBytes)))
+		x.UploadLog(ctx, schema.NewDiagnostics().AddInfo(string(jsonBytes)))
+	default:
+		var consoleOutput strings.Builder
+		consoleOutput.WriteString(fmt.Sprintf("Rule name %s--", r.RuleBlock.Name))
+		if r.RuleBlock.MetadataBlock != nil && r.RuleBlock.MetadataBlock.Id != "" {
+			consoleOutput.WriteString(fmt.Sprintf("id %s, ", r.RuleBlock.MetadataBlock.Id))
+		}
+		consoleOutput.WriteString(fmt.Sprintf("%s.", r.RuleBlock.Output))
+		//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo(consoleOutput.String()))
+		x.UploadLog(ctx, schema.NewDiagnostics().AddInfo(consoleOutput.String()))
+
+	}
 
 	// send to cloud
 	if x.issueStreamUploader == nil {
