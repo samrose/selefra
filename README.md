@@ -93,6 +93,14 @@ For quick start, run this demo, it should take less than a few minutes:
     ```bash
     selefra apply 
     ```
+
+## 🔥 Use GPT
+
+We support using GPT to analyze Cloud after v0.2.0
+
+```bash
+gpt --query="<You need AI to help you solve the risk of query>" --openai_mode=gpt-3.5 --openai_limit=5 --openai_api_key=<Your Openai Api Key>
+```
     
 ## Selefra Community Ecosystem
 
