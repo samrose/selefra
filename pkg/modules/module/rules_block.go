@@ -137,6 +137,11 @@ func (x *RuleBlock) Check(module *Module, validatorContext *ValidatorContext) *s
 		report := RenderErrorTemplate(errorTips, x.GetNodeLocation("output"))
 		diagnostics.AddErrorMsg(report)
 	}
+	if x.MetadataBlock == nil {
+		errorTips := fmt.Sprintf("Rule metadata must not be empty")
+		report := RenderErrorTemplate(errorTips, x.GetNodeLocation("metadata"))
+		diagnostics.AddErrorMsg(report)
+	}
 
 	if x.MetadataBlock != nil {
 		diagnostics.AddDiagnostics(x.MetadataBlock.Check(module, validatorContext))
@@ -214,9 +219,8 @@ func NewRuleMetadataBlock(rule *RuleBlock) *RuleMetadataBlock {
 func (x *RuleMetadataBlock) Check(module *Module, validatorContext *ValidatorContext) *schema.Diagnostics {
 
 	diagnostics := schema.NewDiagnostics()
-
 	// The rule id must be globally unique if it specifies
-	if x.Id != "" {
+	if x.Id != "" && x.runtime != nil {
 		if _, exists := validatorContext.GetRuleBlockById(x.Id); exists {
 			errorTips := fmt.Sprintf("Rule metadata id must not duplication: %s", x.Id)
 			report := RenderErrorTemplate(errorTips, x.GetNodeLocation("id"+NodeLocationSelfValue))
@@ -226,7 +230,7 @@ func (x *RuleMetadataBlock) Check(module *Module, validatorContext *ValidatorCon
 		}
 	}
 
-	if x.Remediation != "" {
+	if x.Remediation != "" && x.runtime != nil {
 		if strings.Contains(x.Remediation, "..") {
 			errorTips := fmt.Sprintf("Rule %s metadata remediation file path can not contains ..", x.runtime.rule.Name)
 			report := RenderErrorTemplate(errorTips, x.GetNodeLocation("remediation"+NodeLocationSelfValue))

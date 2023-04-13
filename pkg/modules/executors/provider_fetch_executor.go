@@ -358,10 +358,12 @@ func (x *ProviderFetchExecutorWorker) executePlan(ctx context.Context, plan *pla
 		return
 	}
 
+	cli_ui.Infof("%s %s, pull infrastructure data:\n", plan.ProviderConfigurationBlock.Provider, plan.Provider.String())
 	// Check whether the cache can be removed
 	cache, needFetchTableSet := x.tryHitCache(ctx, databaseStorage, plan, information)
 	if cache {
 		x.sendMessage(x.addProviderNameForMessage(plan, schema.NewDiagnostics().AddInfo("Provider %s pull data hit cache", plan.String())))
+		cli_ui.Infof("Hit Selefra %s Provider cache! The default data cache time is %s.\n\n", plan.String(), plan.ProviderConfigurationBlock.Cache)
 		return
 	}
 
@@ -457,6 +459,7 @@ func (x *ProviderFetchExecutorWorker) executePlan(ctx context.Context, plan *pla
 		res, err := recv.Recv()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
+				cli_ui.Infof("Provider %s resource fetch %d/%d \n\n", plan.String(), success, total)
 				break
 			}
 			x.sendMessage(x.addProviderNameForMessage(plan, schema.NewDiagnostics().AddErrorMsg(err.Error())))

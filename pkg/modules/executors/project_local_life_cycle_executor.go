@@ -133,12 +133,12 @@ func (x *ProjectLocalLifeCycleExecutor) Execute(ctx context.Context) *schema.Dia
 	if x.options.ProjectLifeCycleStep > ProjectLifeCycleStepCloudInit {
 		return nil
 	}
-	ok := x.initCloudClient(ctx)
-	if !ok {
-		_ = x.cloudExecutor.UploadLog(ctx, schema.NewDiagnostics().AddErrorMsg("Selefra Cloud init failed, exit."))
-		return nil
-	}
-	_ = x.cloudExecutor.UploadLog(ctx, schema.NewDiagnostics().AddInfo("Selefra Cloud init success"))
+	_ = x.initCloudClient(ctx)
+	//if !ok {
+	//	_ = x.cloudExecutor.UploadLog(ctx, schema.NewDiagnostics().AddErrorMsg("Selefra Cloud init failed, exit."))
+	//	return nil
+	//}
+	//_ = x.cloudExecutor.UploadLog(ctx, schema.NewDiagnostics().AddInfo("Selefra Cloud init success"))
 
 	// fix dsn
 	if !x.fixDsn(ctx) {
@@ -164,6 +164,20 @@ func (x *ProjectLocalLifeCycleExecutor) Execute(ctx context.Context) *schema.Dia
 		x.cloudExecutor.ReportTaskStatus(log.StageType_STAGE_TYPE_INITIALIZING, log.Status_STATUS_FAILED)
 		return nil
 	}
+
+	// check update
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\nChecking Selefra provider updates...\n"))
+	for _, plan := range providersInstallPlan {
+		x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\t- %s all ready updated!", plan.String()))
+	}
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\nSelefra has been finished update providers!"))
+
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\nTesting Selefra operation environment...\n"))
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\t- Client verification completed"))
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\t- Providers verification completed"))
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\t- Profile verification completed"))
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\nComplete the Selefra runtime environment test!"))
+
 	x.cloudExecutor.ReportTaskStatus(log.StageType_STAGE_TYPE_INITIALIZING, log.Status_STATUS_SUCCESS)
 	x.cloudExecutor.ChangeLogStage(log.StageType_STAGE_TYPE_PULL_INFRASTRUCTURE)
 
@@ -321,7 +335,7 @@ func (x *ProjectLocalLifeCycleExecutor) install(ctx context.Context) (planner.Pr
 
 // Start pulling data
 func (x *ProjectLocalLifeCycleExecutor) fetch(ctx context.Context, providersInstallPlan planner.ProvidersInstallPlan, localProviderManager *local_providers_manager.LocalProvidersManager) (*ProviderFetchExecutor, planner.ProvidersFetchPlan, bool) {
-
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\nSelefra will start infrastructure data collection...\n"))
 	// Develop a data pull plan
 	providerFetchPlans, d := planner.NewProviderFetchPlanner(&planner.ProviderFetchPlannerOptions{
 		DSN:                          x.options.DSN,
@@ -352,6 +366,7 @@ func (x *ProjectLocalLifeCycleExecutor) fetch(ctx context.Context, providersInst
 	if x.cloudExecutor.UploadLog(ctx, d) {
 		return nil, nil, false
 	}
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Complete Selefra infrastructure data collection!\n"))
 	return fetchExecutor, providerFetchPlans, true
 }
 

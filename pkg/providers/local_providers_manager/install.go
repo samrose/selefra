@@ -74,7 +74,7 @@ func (x *LocalProvidersManager) InstallProvider(ctx context.Context, options *In
 		options.MessageChannel.Send(schema.NewDiagnostics().AddErrorMsg("Install provider %s in directory %s failed: %s", options.RequiredProvider.String(), utils.AbsPath(providerVersionPath), err.Error()))
 		return
 	}
-	options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Install provider %s in directory %s success", options.RequiredProvider.String(), utils.AbsPath(providerVersionPath)))
+	//options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Install provider %s in directory %s success", options.RequiredProvider.String(), utils.AbsPath(providerVersionPath)))
 
 	// Construct metadata
 	localProvider := LocalProvider{

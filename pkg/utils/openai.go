@@ -238,7 +238,3 @@ func GPT3Func(ctx context.Context, client *openai.Client, Prompt string) (string
 	}
 	return strings.Trim(resp.Choices[0].Text, "\n"), nil
 }
-
-func GPT4Func(ctx context.Context, client *openai.Client, Prompt string) {
-
-}

@@ -54,13 +54,13 @@ func (x *YamlFileToModuleParser) Parse() (*module.Module, *schema.Diagnostics) {
 		case SelefraBlockFieldName:
 			yamlFileModule.SelefraBlock = x.parseSelefraBlock(key, value, diagnostics)
 			if x.instruction != nil {
-				if x.instruction["openai_api_key"] != "" {
+				if x.instruction["openai_api_key"] != nil && x.instruction["openai_api_key"] != "" {
 					yamlFileModule.SelefraBlock.OpenaiApiKey = x.instruction["openai_api_key"].(string)
 				}
-				if x.instruction["openai_mode"] != "" {
+				if x.instruction["openai_mode"] != nil && x.instruction["openai_mode"] != "" {
 					yamlFileModule.SelefraBlock.OpenaiMode = x.instruction["openai_mode"].(string)
 				}
-				if x.instruction["openai_limit"] != 0 {
+				if x.instruction["openai_limit"] != nil && x.instruction["openai_limit"] != 0 {
 					yamlFileModule.SelefraBlock.OpenaiLimit = x.instruction["openai_limit"].(uint64)
 				}
 			}
@@ -76,6 +76,15 @@ func (x *YamlFileToModuleParser) Parse() (*module.Module, *schema.Diagnostics) {
 					yamlFileModule.RulesBlock = module.RulesBlock{
 						&module.RuleBlock{
 							Name:   "CloudChat",
+							Labels: map[string]string{"Initiator": "GPT"},
+							MetadataBlock: &module.RuleMetadataBlock{
+								Id:          "GPT Rule",
+								Title:       "GPT mode automatic analysis",
+								Severity:    "Low",
+								Author:      "Selefra",
+								Remediation: "In GPT mode, it will automatically analyze whether there is risk information according to the query content.",
+								Description: "In GPT mode, it will automatically analyze whether there is risk information according to the query content.",
+							},
 							Query:  x.instruction["query"].(string),
 							Output: "{{.resource}},{{.title}}",
 						},

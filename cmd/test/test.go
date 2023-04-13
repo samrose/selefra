@@ -45,7 +45,7 @@ func NewTestCmd() *cobra.Command {
 }
 
 func Test(ctx context.Context, projectWorkspace, downloadWorkspace string) error {
-
+	cli_ui.Infof("\nTesting Selefra operation environment...\n")
 	hasError := atomic.Bool{}
 	messageChannel := message.NewChannel[*schema.Diagnostics](func(index int, message *schema.Diagnostics) {
 		if utils.IsNotEmpty(message) {
@@ -72,8 +72,10 @@ func Test(ctx context.Context, projectWorkspace, downloadWorkspace string) error
 	}).Execute(context.Background())
 	messageChannel.ReceiverWait()
 
-	cli_ui.Infof("RequireProvidersBlock verification completed\n")
-	cli_ui.Infof("Profile verification completed\n")
+	cli_ui.Infoln("\t- Client verification completed")
+	cli_ui.Infoln("\t- Providers verification completed")
+	cli_ui.Infoln("\t- Profile verification completed")
+	cli_ui.Infoln("\nComplete the Selefra runtime environment test!")
 
 	if utils.IsNotEmpty(d) {
 		_ = cli_ui.PrintDiagnostics(d)
@@ -93,7 +95,7 @@ func getDsn(ctx context.Context, projectWorkspace, downloadWorkspace string) (st
 	// 1. load from project workspace
 	dsn, _ := loadDSNFromProjectWorkspace(ctx, projectWorkspace, downloadWorkspace)
 	if dsn != "" {
-		cli_ui.Infof("Find database connection in workspace. %s \n", projectWorkspace)
+		//cli_ui.Infof("Find database connection in workspace. %s \n", projectWorkspace)
 		return dsn, nil
 	}
 
@@ -116,7 +118,7 @@ func getDsn(ctx context.Context, projectWorkspace, downloadWorkspace string) (st
 			return "", err
 		}
 		if orgDSN != "" {
-			cli_ui.Infof("Find database connection in you selefra cloud. \n")
+			//cli_ui.Infof("Find database connection in you selefra cloud. \n")
 			return orgDSN, nil
 		}
 	}
@@ -124,7 +126,7 @@ func getDsn(ctx context.Context, projectWorkspace, downloadWorkspace string) (st
 	// 3. get dsn from env
 	dsn = os.Getenv(env.DatabaseDsn)
 	if dsn != "" {
-		cli_ui.Infof("Find database connection in your env. \n")
+		//cli_ui.Infof("Find database connection in your env. \n")
 		return dsn, nil
 	}
 

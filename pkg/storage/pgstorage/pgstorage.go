@@ -119,10 +119,7 @@ func DefaultPostgreSQL(downloadWorkspace string, messageChannel *message.Channel
 	//	})
 	//	isRunSuccess = downloader.Run(context.Background())
 	//})
-
-	logo := " _____        _         __              \n/  ___|      | |       / _|             \n\\ `--.   ___ | |  ___ | |_  _ __   __ _ \n `--. \\ / _ \\| | / _ \\|  _|| '__| / _` |\n/\\__/ /|  __/| ||  __/| |  | |   | (_| |\n\\____/  \\___||_| \\___||_|  |_|    \\__,_|\n"
-	cli_ui.Infof(logo)
-	messageChannel.Send(schema.NewDiagnostics().AddInfo("Use built-in PostgreSQL database..."))
+	//messageChannel.Send(schema.NewDiagnostics().AddInfo("Use built-in PostgreSQL database..."))
 	downloader := oci.NewPostgreSQLDownloader(&oci.PostgreSQLDownloaderOptions{
 		MessageChannel:    messageChannel.MakeChildChannel(),
 		DownloadDirectory: downloadWorkspace,

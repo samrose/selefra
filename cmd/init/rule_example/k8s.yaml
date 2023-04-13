@@ -10,6 +10,21 @@ rules:
         ) AS a2
       WHERE
         a2 -> 'resources' -> 'limits' ->> 'cpu' IS NULL;
+    labels:
+      resource_account_id: '{{.namespace}}'
+      resource_id: '{{.name}}'
+      resource_region: 'Not available'
+      resource_type: CronJob
+    metadata:
+      author: Selefra
+      description: Containers in a CronJob should have CPU limit which restricts the container to use no more than a given amount of CPU.
+      id: SF050101
+      provider: K8S
+      severity: Low
+      tags:
+        - Misconfiguration
+        - NSA
+      title: Cronjob cpu no limit
     output: "Cronjob cpu no limit, name: {{.name}}"
   - name: daemonset_memory_no_limit
     query: |-
@@ -22,4 +37,19 @@ rules:
         ) AS a2
       WHERE
         a2 -> 'resources' -> 'limits' ->> 'memory' IS NULL;
+    labels:
+      resource_account_id: '{{.namespace}}'
+      resource_id: '{{.name}}'
+      resource_region: 'Not available'
+      resource_type: DaemonSet
+    metadata:
+      author: Selefra
+      description: Containers in a DaemonSet should have memory limit which restricts the container to use no more than a given amount of user or system memory.
+      id: SF050203
+      provider: K8S
+      severity: Low
+      tags:
+        - Misconfiguration
+        - NSA
+      title: Daemonset memory no limit
     output: "Daemonset memory no limit, name: {{.name}}"

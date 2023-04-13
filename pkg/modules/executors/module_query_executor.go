@@ -200,11 +200,41 @@ func (x *ModuleQueryExecutorWorker) Run(ctx context.Context) {
 		defer func() {
 			x.wg.Done()
 		}()
+		x.sendMessage(schema.NewDiagnostics().AddInfo("Selefra will load and apply selefra policy with sql and prompt...\n"))
+		x.sendMessage(schema.NewDiagnostics().AddInfo("Loading and initializing Selefra policy...\n"))
+		var num int
+		var secRuleMap = make(map[string]int)
+		secRuleMap["Critical"] = 0
+		secRuleMap["High"] = 0
+		secRuleMap["Medium"] = 0
+		secRuleMap["Low"] = 0
+		secRuleMap["Informational"] = 0
+		var secMap = make(map[string]int)
+		secMap["Critical"] = 0
+		secMap["High"] = 0
+		secMap["Medium"] = 0
+		secMap["Low"] = 0
+		secMap["Informational"] = 0
+		var plans []*planner.RulePlan
+		for plan := range x.ruleChannel {
+			plans = append(plans, plan)
+			num++
+			if plan.MetadataBlock != nil {
+				secRuleMap[plan.MetadataBlock.Severity]++
+			}
+			x.sendMessage(schema.NewDiagnostics().AddInfo("\t- \"%s\" Rule Completed", plan.RuleBlock.Name))
+		}
+		x.sendMessage(schema.NewDiagnostics().AddInfo("\nLoaded: %d policies to loaded, %d Critical, %d High, %d Medium, %d Low, %d Informational.\n", num, secRuleMap["Severity"], secRuleMap["High"], secRuleMap["Medium"], secRuleMap["Low"], secRuleMap["Informational"]))
 
-		for rulePlan := range x.ruleChannel {
-			x.execRulePlan(ctx, rulePlan)
+		for i := range plans {
+			x.execRulePlan(ctx, plans[i], secMap)
 		}
 
+		totel := 0
+		for s := range secMap {
+			totel += secMap[s]
+		}
+		x.sendMessage(schema.NewDiagnostics().AddInfo("Summary: Total %d Issues, %d Critical, %d High, %d Medium, %d Low, %d Informational.\n", totel, secMap["Critical"], secMap["High"], secMap["Medium"], secMap["Low"], secMap["Informational"]))
 	}()
 }
 
@@ -214,21 +244,33 @@ func (x *ModuleQueryExecutorWorker) sendMessage(diagnostics *schema.Diagnostics)
 	}
 }
 
-func (x *ModuleQueryExecutorWorker) execRulePlan(ctx context.Context, rulePlan *planner.RulePlan) {
+func (x *ModuleQueryExecutorWorker) execRulePlan(ctx context.Context, rulePlan *planner.RulePlan, secMap map[string]int) {
 
-	x.sendMessage(schema.NewDiagnostics().AddInfo("Rule %s begin exec...", rulePlan.String()))
+	Severity := fmt.Sprintf("[%s] ", rulePlan.MetadataBlock.Severity)
 
+	Title := rulePlan.MetadataBlock.Title
+
+	str := utils.GenerateString(Severity+Title, "·", "%d\n")
+	str += fmt.Sprintf("Description: %s\n", rulePlan.MetadataBlock.Description)
+	str += fmt.Sprintf("Results:\n")
+	var num int
 	storagesMap := x.moduleQueryExecutor.options.ProviderExpandMap
 	for _, storages := range storagesMap {
 		for _, storage := range storages {
-			x.execStorageQuery(ctx, rulePlan, storage)
+			output, snum := x.execStorageQuery(ctx, rulePlan, storage)
+			num += snum
+			str += output
 			// TODO Stage log
 		}
 	}
 	// TODO log
 
 	defer func() {
-		//x.sendMessage(schema.NewDiagnostics().AddInfo("Rule %s exec done", rulePlan.String()))
+		if num > 0 {
+			logStr := fmt.Sprintf(str, num)
+			secMap[rulePlan.RuleBlock.MetadataBlock.Severity] += num
+			x.sendMessage(schema.NewDiagnostics().AddInfo(logStr))
+		}
 	}()
 }
 
@@ -238,13 +280,45 @@ func isSql(query string) bool {
 	return re.MatchString(query)
 }
 
-func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePlan *planner.RulePlan, providerContext *planner.ProviderContext) {
+func (x *ModuleQueryExecutorWorker) FmtOutputStr(rule *module.RuleBlock, providerContext *planner.ProviderContext) (logStr string) {
+	var t = "default"
+	if x.moduleQueryExecutor != nil && x.moduleQueryExecutor.options.Plan != nil && x.moduleQueryExecutor.options.Plan.Instruction != nil && x.moduleQueryExecutor.options.Plan.Instruction["output"] != "" {
+		if s, ok := x.moduleQueryExecutor.options.Plan.Instruction["output"].(string); ok {
+			t = strings.ToLower(s)
+		}
+	}
+	switch t {
+	case "json":
+		m := make(map[string]interface{})
+		m["schema"] = providerContext.Schema
+		m["policy"] = rule.Query
+		m["labels"] = rule.Labels
+		m["metadata"] = rule.MetadataBlock
+		m["output"] = rule.Output
+		jsonBytes, err := json.MarshalIndent(m, "", "  ")
+		if err != nil {
+			fmt.Println("JSON marshal error:", err)
+			return
+		}
+		logStr = string(jsonBytes)
+	default:
+		labelsStr := ""
+		for _, label := range rule.Labels {
+			labelsStr += fmt.Sprintf("%s ", label)
+		}
+		logStr = utils.GenerateString("\t"+rule.Output, " ", labelsStr+"\n")
+	}
+	return logStr
+}
+
+func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePlan *planner.RulePlan, providerContext *planner.ProviderContext) (outputStr string, num int) {
 	// Query whether it is gpt through query statement
+	resultStr := ""
 	if isSql(rulePlan.Query) {
 		resultSet, diagnostics := providerContext.Storage.Query(ctx, rulePlan.Query)
 		if utils.HasError(diagnostics) {
 			x.sendMessage(schema.NewDiagnostics().AddErrorMsg("rule %s exec error: %s", rulePlan.String(), diagnostics.ToString()))
-			return
+			return "", 0
 		}
 
 		// TODO Print log prompt
@@ -253,12 +327,13 @@ func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePl
 		//cli_ui.Infoln("Schema:")
 		//cli_ui.Infoln(schema + "\n")
 		//cli_ui.Infoln("Description:")
-
 		for {
 			rows, d := resultSet.ReadRows(100)
 			if rows != nil {
 				for _, row := range rows.SplitRowByRow() {
-					x.processRuleRow(ctx, rulePlan, providerContext, row)
+					result := x.processRuleRow(ctx, rulePlan, providerContext, row)
+					num++
+					resultStr += x.FmtOutputStr(result.RuleBlock, providerContext)
 				}
 			}
 			if utils.HasError(d) {
@@ -277,7 +352,7 @@ func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePl
 		typeRes, err := utils.OpenApiClient(ctx, openaiApiKey, openaiMode, "type", rulePlan.Query)
 		if err != nil {
 			fmt.Println(err.Error())
-			return
+			return "", 0
 		}
 		tar := strings.Split(typeRes, " & ")
 		ty := tar[0]
@@ -295,7 +370,7 @@ AND table_schema = '%s';`
 		resultSet, diagnostics := providerContext.Storage.Query(ctx, schameSql)
 		if utils.HasError(diagnostics) {
 			x.sendMessage(schema.NewDiagnostics().AddErrorMsg("rule %s exec error: %s", rulePlan.String(), diagnostics.ToString()))
-			return
+			return "", 0
 		}
 		for {
 			rows, d := resultSet.ReadRows(-1)
@@ -324,13 +399,13 @@ AND table_schema = '%s';`
 		tables, err := x.filterTables(ctx, tableNames, ty, openaiApiKey, openaiMode, rulePlan)
 		if err != nil {
 			fmt.Println(err)
-			return
+			return "", 0
 		}
 		tables = utils.RemoveRepeatedElement(tables)
 		columnMap, err := x.filterColumns(ctx, tables, providerContext, ty, openaiApiKey, openaiMode, rulePlan)
 		if err != nil {
 			fmt.Println(err)
-			return
+			return "", 0
 		}
 		for k := range columnMap {
 			if len(columnMap[k]) == 0 {
@@ -340,22 +415,23 @@ AND table_schema = '%s';`
 		rows, err := x.getRows(ctx, columnMap, providerContext, openaiLimit, rulePlan)
 		if err != nil {
 			fmt.Println(err)
-			return
+			return "", 0
 		}
 		limit := int(openaiLimit)
 		if len(rows) < int(openaiLimit) {
 			limit = len(rows)
 		}
-		err = x.getIssue(ctx, rows[:limit], openaiApiKey, openaiMode, ty, provider, tableName, rulePlan, providerContext)
+		resultStr, num, err = x.getIssue(ctx, rows[:limit], openaiApiKey, openaiMode, ty, provider, tableName, *rulePlan, providerContext)
 		if err != nil {
 			fmt.Println(err)
-			return
+			return "", 0
 		}
 	}
+	return resultStr, num
 }
 
 // Process the row queried by the rule
-func (x *ModuleQueryExecutorWorker) processRuleRow(ctx context.Context, rulePlan *planner.RulePlan, storage *planner.ProviderContext, row *schema.Row) {
+func (x *ModuleQueryExecutorWorker) processRuleRow(ctx context.Context, rulePlan *planner.RulePlan, storage *planner.ProviderContext, row *schema.Row) *RuleQueryResult {
 	rowScope := planner.ExtendScope(rulePlan.RuleScope)
 
 	// Inject the queried rows into the scope
@@ -368,7 +444,7 @@ func (x *ModuleQueryExecutorWorker) processRuleRow(ctx context.Context, rulePlan
 	ruleBlockResult, diagnostics := x.renderRule(ctx, rulePlan, rowScope)
 	if utils.HasError(diagnostics) {
 		x.moduleQueryExecutor.options.MessageChannel.Send(diagnostics)
-		return
+		return nil
 	}
 
 	result := &RuleQueryResult{
@@ -381,8 +457,9 @@ func (x *ModuleQueryExecutorWorker) processRuleRow(ctx context.Context, rulePlan
 		Schema:                storage.Schema,
 		Row:                   row,
 	}
-	x.moduleQueryExecutor.options.RuleQueryResultChannel.Send(result)
 
+	x.moduleQueryExecutor.options.RuleQueryResultChannel.Send(result)
+	return result
 	//x.sendMessage(schema.NewDiagnostics().AddInfo(json_util.ToJsonString(ruleBlockResult)))
 
 }
@@ -726,7 +803,10 @@ func (x *ModuleQueryExecutorWorker) getRows(ctx context.Context, columnMap map[s
 	return rs, nil
 }
 
-func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema.Row, openaiApiKey, openaiMode, ty, provider, tableName string, rulePlan *planner.RulePlan, providerContext *planner.ProviderContext) (err error) {
+func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema.Row, openaiApiKey, openaiMode, ty, provider, tableName string, rulePlan planner.RulePlan, providerContext *planner.ProviderContext) (resultStr string, num int, err error) {
+	var resource_id = []string{
+		"name", "arn", "id", "Not available", "security_group_id", "account_id", "region", "account", "db_instance_id", "user_name", "org", "customer_id", "email", "subscription_id", "real_name", "instance_id", "product_id", "full_name", "cluster_id", "function_arn", "device_name", "role_name", "friendly_name", "subject", "disk_id", "user_email", "public_ip", "member_id", "user_arn", "load_balancer_arn", "username", "schema_id", "access_key_id", "html_url", "cluster_arn", "group_arn",
+	}
 	for _, row := range rows {
 		info, err := utils.OpenApiClient(ctx, openaiApiKey, openaiMode, ty, provider, tableName, row, rulePlan.Query)
 		if err != nil {
@@ -743,7 +823,7 @@ func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema
 			if rulePlan.MetadataBlock == nil {
 				rulePlan.MetadataBlock = &module.RuleMetadataBlock{}
 			}
-			metablock := rulePlan.MetadataBlock
+			metablock := *rulePlan.MetadataBlock
 
 			metablock.Title = infoBlockResult[i].Title
 			metablock.Description = infoBlockResult[i].Description
@@ -757,7 +837,12 @@ func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema
 			for i2 := range keys {
 				tempMap[keys[i2]], _ = row.Get(keys[i2])
 			}
-			tempMap["resource"] = infoBlockResult[i].Resource
+			resourceKey := utils.FindFirstSameKeyInTwoStringArray(resource_id, keys)
+			if resourceKey != "" {
+				tempMap["resource"], _ = row.Get(resourceKey)
+			} else {
+				tempMap["resource"] = infoBlockResult[i].Resource
+			}
 			tempMap["title"] = infoBlockResult[i].Title
 			tempMap["description"] = infoBlockResult[i].Description
 			tempMap["remediation"] = infoBlockResult[i].Remediation
@@ -772,14 +857,14 @@ func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema
 				Name:          rulePlan.Name,
 				Query:         rulePlan.Query,
 				Labels:        rulePlan.Labels,
-				MetadataBlock: metablock,
+				MetadataBlock: &metablock,
 				Output:        out,
 			}
 
 			result := &RuleQueryResult{
 				Instructions:          x.moduleQueryExecutor.options.Plan.Instruction,
 				Module:                rulePlan.Module,
-				RulePlan:              rulePlan,
+				RulePlan:              &rulePlan,
 				RuleBlock:             ruleBlockResult,
 				Provider:              registry.NewProvider(providerContext.ProviderName, providerContext.ProviderVersion),
 				ProviderConfiguration: providerContext.ProviderConfiguration,
@@ -787,8 +872,12 @@ func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema
 				Row:                   row,
 			}
 
+			if result != nil {
+				num++
+				resultStr += x.FmtOutputStr(result.RuleBlock, providerContext)
+			}
 			x.moduleQueryExecutor.options.RuleQueryResultChannel.Send(result)
 		}
 	}
-	return nil
+	return resultStr, num, nil
 }

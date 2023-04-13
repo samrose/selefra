@@ -77,7 +77,6 @@ func (x *LocalDirectoryModuleLoader) Name() ModuleLoaderType {
 }
 
 func (x *LocalDirectoryModuleLoader) Load(ctx context.Context) (*module.Module, bool) {
-
 	defer func() {
 		x.options.MessageChannel.SenderWaitAndClose()
 	}()
@@ -127,9 +126,6 @@ func (x *LocalDirectoryModuleLoader) Load(ctx context.Context) (*module.Module, 
 	if hasError {
 		return nil, false
 	}
-
-	// Print phased results
-	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("load module %s success", x.options.BuildFullName()))
 
 	// load sub modules
 	subModuleSlice, loadSuccess := x.loadSubModules(ctx, finalModule.ModulesBlock)

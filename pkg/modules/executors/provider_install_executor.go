@@ -70,9 +70,14 @@ func (x *ProviderInstallExecutor) Execute(ctx context.Context) *schema.Diagnosti
 	}()
 
 	diagnostics := schema.NewDiagnostics()
+
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Initializing provider plugins...\n"))
+	var plans []*planner.ProviderInstallPlan
 	for _, plan := range x.options.Plans {
 		diagnostics.AddDiagnostics(x.executePlan(ctx, plan))
+		plans = append(plans, plan)
 	}
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\nSelefra has been successfully installed providers!"))
 	return diagnostics
 }
 
@@ -85,11 +90,11 @@ func (x *ProviderInstallExecutor) executePlan(ctx context.Context, plan *planner
 		return diagnostics
 	}
 	if installed {
-		x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\tProvider %s has installed", plan.String()))
+		x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\t- %s all ready updated!", plan.String()))
 		return nil
 	}
 
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\tBegin downloading provider %s ...", plan.String()))
+	//x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\t- %s downloading...", plan.String()))
 
 	x.localProviderManager.InstallProvider(ctx, &local_providers_manager.InstallProvidersOptions{
 		RequiredProvider: requiredProvider,
@@ -99,7 +104,7 @@ func (x *ProviderInstallExecutor) executePlan(ctx context.Context, plan *planner
 
 	// TODO init
 
-	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("Download & install provider %s success", plan.String()))
+	x.options.MessageChannel.Send(schema.NewDiagnostics().AddInfo("\r\t- %s all ready updated!", plan.String()))
 
 	return nil
 }

@@ -189,10 +189,10 @@ func (x *PostgreSQLInstaller) Start() bool {
 	if err != nil {
 		diagnostics.AddErrorMsg("Start postgresql error: %s", err.Error())
 	} else {
-		diagnostics.AddInfo("Start postgresql success")
+		//diagnostics.AddInfo("Start postgresql success")
 	}
 	if stdout != "" {
-		diagnostics.AddInfo(stdout)
+		//diagnostics.AddInfo(stdout)
 	}
 	if stderr != "" {
 		diagnostics.AddErrorMsg(stderr)

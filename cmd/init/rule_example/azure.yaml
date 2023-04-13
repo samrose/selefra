@@ -7,6 +7,27 @@ rules:
         azure_storage_accounts
       WHERE
         ( properties ->> 'supportsHttpsTrafficOnly' ) :: BOOLEAN = FALSE;
+    labels:
+      resource_account_id: '{{.subscription_id}}'
+      resource_id: '{{.name}}'
+      resource_region: '{{.location}}'
+      resource_type: Storage Account
+      bucket_url: 'https://{{.name}}.blob.core.windows.net'
+    metadata:
+      author: Selefra
+      description: Enable data encryption in transit.
+      id: SF030101
+      provider: Azure
+      severity: Medium
+      tags:
+        - Attack Surface
+        - Security
+        - Misconfiguration
+        - CIS Benchmark
+        - PCI
+        - ISO 27001
+        - SOC 2
+      title: Secure transfer required is set to disabled
     output: "Secure transfer required is set to disabled, bucket name: {{.name}}, location: {{.location}}"
   - name: public_network_access_is_set_to_allow
     query: |-
@@ -16,6 +37,28 @@ rules:
         azure_storage_accounts
       WHERE
         properties -> 'network_acls' ->> 'defaultAction' IS DISTINCT FROM 'Deny';
+    labels:
+      resource_account_id: '{{.subscription_id}}'
+      resource_id: '{{.name}}'
+      resource_region: '{{.location}}'
+      resource_type: Storage Account
+      bucket_url: 'https://{{.name}}.blob.core.windows.net'
+    metadata:
+      author: Selefra
+      description: Ensure Default Network Access Rule for Storage Accounts is Set to Deny.
+      id: SF030105
+      provider: Azure
+      severity: High
+      tags:
+        - Attack Scenarios
+        - Attack Surface
+        - Security
+        - Misconfiguration
+        - CIS Benchmark
+        - PCI
+        - ISO 27001
+        - SOC 2
+      title: Public network access is set to allow
     output: "Public network access is set to allow, bucket name: {{.name}}, location: {{.location}}"
   - name: unattached_disk_exists
     query: |-
@@ -25,4 +68,20 @@ rules:
         azure_compute_disks
       WHERE
         properties ->> 'diskState' = 'Unattached';
+    labels:
+      resource_account_id: '{{.subscription_id}}'
+      resource_id: '{{.name}}'
+      resource_region: '{{.location}}'
+      resource_type: Virtual Machines
+    metadata:
+      author: Selefra
+      description: Identify any unattached (unused) Microsoft Azure virtual machine disk volumes available within your Azure cloud account and delete them in order to lower the cost of your monthly bill and reduce the risk of sensitive data leakage.
+      id: SF030310
+      provider: Azure
+      severity: Low
+      tags:
+        - Security
+        - Misconfiguration
+        - Cost optimisation
+      title: Unattached disk exists
     output: "Unattached disk exists, disk name: {{.name}}, location: {{.location}}"

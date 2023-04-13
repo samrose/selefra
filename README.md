@@ -9,14 +9,14 @@
   <p align="center">
     <i>Selefra is an open-source policy-as-code software that provides analytics for multi-cloud and SaaS.</i>
   </p>
-  
+
   <!-- Badges -->
 <p align="center">   
 <a href="https://pkg.go.dev/github.com/selefra/selefra"><img alt="go" src="https://img.shields.io/badge/go-1.19-1E90FF" /></a>
 <a href="https://github.com/selefra/selefra"><img alt="Total" src="https://img.shields.io/github/downloads/selefra/selefra/total?logo=github"></a>
 <a href="https://github.com/selefra/selefra/blob/master/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/selefra/selefra?style=social"></a>
   </p>
-  
+
   <!-- Badges -->
   <p align="center">
 <a href="https://selefra.io/community/join"><img src="https://img.shields.io/badge/-Slack-424549?style=social&logo=Slack" height=25></a>
@@ -28,7 +28,7 @@
     <a href="https://selefra.medium.com/"><img src="https://img.shields.io/badge/-Medium-red?style=social&logo=medium" height=25></a>
 
   </p>
-  
+
 <p align="center">
   <img src="https://user-images.githubusercontent.com/124020340/225897757-188f1a50-2efa-4a9e-9199-7cb7f68485be.png">
 </p>
@@ -68,15 +68,15 @@ For quick start, run this demo, it should take less than a few minutes:
 
 1. **Install Selefra**
 
-    For non-macOS users, [download packages](https://github.com/selefra/selefra/releases) to install Selefra.
+   For non-macOS users, [download packages](https://github.com/selefra/selefra/releases) to install Selefra.
 
-    On macOS, tap Selefra with Homebrew:
+   On macOS, tap Selefra with Homebrew:
 
     ```bash
     brew tap selefra/tap
     ```
 
-    Next, install Selefra:
+   Next, install Selefra:
 
     ```bash
     brew install selefra/tap/selefra
@@ -93,12 +93,18 @@ For quick start, run this demo, it should take less than a few minutes:
     ```bash
     selefra apply 
     ```
-    
+   
+4. **Use GPT 🔥**
+
+    ```bash
+    selefra gpt -q "Help me query EBS volumes that are not encrypted" --openai_api_key=<Your OPENAI_API_KEY>
+    ```
+
 ## Selefra Community Ecosystem
 
  Provider | Introduce | Status |
  | --------| ----- | ------ |
- | [AWS](https://www.selefra.io/docs/providers-connector/aws)|The AWS Provider for Selefra can be used to extract data from many of the cloud services by AWS. The provider must be configured with credentials to extract and analyze infrastructure data from AWS. | Stable |
+| [AWS](https://www.selefra.io/docs/providers-connector/aws)|The AWS Provider for Selefra can be used to extract data from many of the cloud services by AWS. The provider must be configured with credentials to extract and analyze infrastructure data from AWS. | Stable |
 | [GCP](https://www.selefra.io/docs/providers-connector/gcp)|The GCP Provider for Selefra can be used to extract data from many of the cloud services by GCP. The provider must be configured with credentials to extract and analyze infrastructure data from GCP. | Stable |
 | [K8S](https://www.selefra.io/docs/providers-connector/k8s)|The K8s Provider for Selefra can be used to extract data from many of the cloud services by K8s. The provider must be configured with credentials to extract and analyze infrastructure data from K8s. | Stable |
 | [Azure](https://www.selefra.io/docs/providers-connector/azure)| The Azure Provider for Selefra can be used to extract data from many of the cloud services by Azure. The provider must be configured with credentials to extract and analyze infrastructure data from Azure.    | Stable |

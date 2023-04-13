@@ -7,6 +7,26 @@ rules:
         gcp_storage_buckets
       WHERE
         uniform_bucket_level_access :: jsonb ->> 'Enabled' = 'false';
+    labels:
+      resource_account_id: '{{.project_id}}'
+      resource_id: '{{.name}}'
+      resource_region: '{{.location}}'
+      resource_type: Cloud Storage
+      bucket_url: 'https://storage.googleapis.com/{{.name}}'
+    metadata:
+      author: Selefra
+      description: Ensure That Cloud Storage Buckets Have Uniform Bucket-Level Access Enabled.
+      id: SF020106
+      provider: GCP
+      severity: Low
+      tags:
+        - Attack Surface
+        - Security
+        - Misconfiguration
+        - CIS Benchmark
+        - PCI
+        - ISO 27001
+      title: Bucket does not have uniform bucket-level access enabled
     output: "Bucket does not have uniform bucket-level access enabled, bucket name: {{.name}}, region: {{.location}}"
   - name: bucket_logging_disable
     query: |-
@@ -16,6 +36,23 @@ rules:
         gcp_storage_buckets
       WHERE
         logging IS NULL;
+    labels:
+      resource_account_id: '{{.project_id}}'
+      resource_id: '{{.name}}'
+      resource_region: '{{.location}}'
+      resource_type: Cloud Storage
+      bucket_url: 'https://storage.googleapis.com/{{.name}}'
+    metadata:
+      author: Selefra
+      description: Ensure bucket enable logging.
+      id: SF020112
+      provider: GCP
+      severity: Low
+      tags:
+        - Security
+        - Misconfiguration
+        - ISO 27001
+      title: Bucket logging disable
     output: "Bucket logging disable, bucket name: {{.name}}, region: {{.location}}"
   - name: instance_disable_deletion_protection
     query: |-
@@ -29,4 +66,22 @@ rules:
         jsonb_array_elements ( a2 -> 'access_configs' ) AS a3
       WHERE
         deletion_protection IS FALSE;
+    labels:
+      resource_account_id: '{{.project_id}}'
+      resource_id: '{{.id}}'
+      resource_region: '{{.zone}}'
+      resource_type: Compute
+      public_ip: '{{.public_ip}}'
+      private_ip: '{{.private_ip}}'
+    metadata:
+      author: Selefra
+      description: Ensure that your production Google Compute Engine instances have Deletion Protection feature enabled in order to protect them from being accidentally deleted.
+      id: SF020314
+      provider: GCP
+      remediation: ./remediation/compute/instance_disable_deletion_protection.md
+      severity: Medium
+      tags:
+        - Security
+        - Misconfiguration
+      title: Instance disable deletion protection
     output: "Instance disable deletion protection, instance id: {{.id}}, zone: {{.zone}}"

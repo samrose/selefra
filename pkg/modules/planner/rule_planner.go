@@ -11,7 +11,6 @@ import (
 // ------------------------------------------------- --------------------------------------------------------------------
 
 type RulePlan struct {
-
 	// The execution plan of the module to which it is associated
 	ModulePlan *ModulePlan
 

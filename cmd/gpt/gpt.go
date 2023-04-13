@@ -16,12 +16,15 @@ import (
 
 func NewGPTCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:              "gpt",
-		Short:            "Use gpt for analysis",
-		Long:             "Use gpt for analysis",
+		Use:              "gpt [prompt]",
+		Short:            "Use ChatGPT for analysis",
+		Long:             "Use ChatGPT for analysis",
 		PersistentPreRun: global.DefaultWrappedInit(),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			query, _ := cmd.PersistentFlags().GetString("query")
+			if len(args) < 1 {
+				return errors.New("your need to input a prompt")
+			}
+			query := args[0]
 			openaiApiKey, _ := cmd.PersistentFlags().GetString("openai_api_key")
 			openaiMode, _ := cmd.PersistentFlags().GetString("openai_mode")
 			openaiLimit, _ := cmd.PersistentFlags().GetUint64("openai_limit")
@@ -48,10 +51,9 @@ func NewGPTCmd() *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().StringP("query", "q", "", "the problem you want to analyze")
 	cmd.PersistentFlags().StringP("output", "p", "", "display content format")
 	cmd.PersistentFlags().StringP("openai_api_key", "k", "", "your openai_api_key")
-	cmd.PersistentFlags().StringP("openai_mode", "m", "", "what mode to use for analysis\n")
+	cmd.PersistentFlags().StringP("openai_mode", "m", "", "what mode to use for analysis")
 	cmd.PersistentFlags().Uint64P("openai_limit", "i", 10, "how many pieces were analyzed in total")
 
 	cmd.SetHelpFunc(cmd.HelpFunc())
@@ -85,7 +87,7 @@ func Gpt(ctx context.Context, instructions map[string]interface{}, projectWorksp
 		},
 		//DSN:                                  env.GetDatabaseDsn(),
 		FetchWorkerNum: 1,
-		QueryWorkerNum: 10,
+		QueryWorkerNum: 1,
 	}).Execute(ctx)
 	messageChannel.ReceiverWait()
 	if err := cli_ui.PrintDiagnostics(d); err != nil {

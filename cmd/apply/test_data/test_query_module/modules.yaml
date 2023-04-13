@@ -1,7 +1,12 @@
 rules:
-  - name: bucket_is_not_configured_with_cors_rules
+  - name: ebs_encryption_is_disabled_by_default
     query: |
-      select * from mock_bar
+      SELECT
+        *
+      FROM
+        aws_ec2_regional_configs
+      WHERE
+        ebs_encryption_enabled_by_default IS FALSE;
     labels:
       resource_account_id: '{{.account_id}}'
       resource_id: '{{.arn}}'
@@ -19,26 +24,26 @@ rules:
         - Security
         - Misconfiguration
       title: S3 Bucket is not configured with CORS rules
-    output: "S3 Bucket is not configured with CORS rules, arn: {{.arn}}"
+    output: "EBS encryption is disabled by default, region id: {{.region}}"
 
 selefra:
   cloud:
     project: example_project
     organization: example_org
   #    hostname: app.selefra.io
-  #  connection:
-  #    type: postgres
-  #    username: postgres
-  #    password: pass
-  #    host: localhost
-  #    port: "5432"
-  #    database: postgres
-  #    sslmode: disable
+  connection:
+    type: postgres
+    username: postgres
+    password: pass
+    host: localhost
+    port: "5432"
+    database: postgres
+    sslmode: disable
   name: example_project
   cli_version: v0.0.1
   providers:
-    - name: mock
-      source: mock
+    - name: aws
+      source: aws
       version: latest
 #    - name: gcp
 #      source: gcp
@@ -48,15 +53,5 @@ selefra:
 providers:
   - name: aws_001
     cache: 1d
-    provider: mock
-    foo-count: 10
-    bar-count: 10
-    sleep-seconds: 1
-    max_goroutines: 1
-  - name: aws_002
-    cache: 1d
-    provider: mock
-    foo-count: 10
-    bar-count: 10
-    sleep-seconds: 1
-    max_goroutines: 1
+    provider: aws
+    max_goroutines: 100

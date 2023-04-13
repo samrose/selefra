@@ -76,6 +76,21 @@ message UploadIssueStream {
         repeated string tags = 7;
 
         string title = 8;
+
+        repeated Compliance compliance=9;
+    }
+
+    message Compliance {
+
+        string control = 1;
+
+        string framework = 2;
+
+        string requirement = 3;
+
+        string title = 4;
+
+        string version = 5;
     }
 
 

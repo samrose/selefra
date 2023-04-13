@@ -28,15 +28,12 @@ var group = make(map[string][]*cobra.Command)
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "selefra",
-	Short: "Selefra - Infrastructure data as Code",
+	Short: "Selefra - Simplify Cloud and SaaS analysis with Selefra.",
 	Long: `
-Selefra - Infrastructure data as Code
-
 For details see the selefra document https://selefra.io/docs
 If you like selefra, give us a star https://github.com/selefra/selefra
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-
 		level, _ := cmd.Flags().GetString("loglevel")
 		global.SetLogLevel(level)
 
@@ -69,6 +66,10 @@ If you like selefra, give us a star https://github.com/selefra/selefra
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	logo := " _____        _         __              \n/  ___|      | |       / _|             \n\\ `--.   ___ | |  ___ | |_  _ __   __ _ \n `--. \\ / _ \\| | / _ \\|  _|| '__| / _` |\n/\\__/ /|  __/| ||  __/| |  | |   | (_| |\n\\____/  \\___||_| \\___||_|  |_|    \\__,_|\n\n"
+	cli_ui.Infof(logo)
+	cli_ui.Infof("Selefra - Simplify Cloud and SaaS analysis with Selefra.\n\n\n")
+
 	defer func() {
 		utils.Close()
 	}()
