@@ -4,11 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
-	"os"
 	"strconv"
 	"strings"
-	"syscall"
-	"unsafe"
 )
 
 func StringToUint64(string2 string) uint64 {
@@ -107,13 +104,4 @@ func GenerateString(leftVar, middleVar, rightVar string) string {
 	result := fmt.Sprintf("%s%s%s", leftVar, middlePart, rightVar)
 
 	return result
-}
-
-func getTerminalWidth() (int, error) {
-	var size [4]uint16
-	_, _, err := syscall.Syscall(syscall.SYS_IOCTL, os.Stdout.Fd(), uintptr(syscall.TIOCGWINSZ), uintptr(unsafe.Pointer(&size)))
-	if err != 0 {
-		return 0, fmt.Errorf("failed to get terminal width: %v", err)
-	}
-	return int(size[1]), nil
 }
