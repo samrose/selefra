@@ -98,7 +98,7 @@ For quick start, run this demo, it should take less than a few minutes:
    
 ## 🔥 Analyze cloud resources using GPT
 
-You can refer to the [documentation](https://selefra-web-opz7.vercel.app/docs/get-started#use-gpt)  to configure your OPENAPI_API_KEY in advance and start analyzing your cloud resources
+You can refer to the [documentation](https://selefra.io/docs/get-started#use-gpt)  to configure your OPENAPI_API_KEY in advance and start analyzing your cloud resources
 
 ```bash
 selefra gpt <"what you want to analyze"> --openai_mode=gpt-3.5 --openai_limit=5 --openai_api_key=<Your Openai Api Key>
