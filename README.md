@@ -42,7 +42,9 @@ Selefra means "select * from infrastructure". It is an open-source policy-as-cod
 
 For best practices and detailed instructions, refer to the Docs. Within the [Docs](https://selefra.io/docs/introduction), you will find information on installation, CLI usage, project workflow, and more guides on how to accomplish cloud inspection tasks.
 
-<img align="right" width="570" alt="img_code" src="https://user-images.githubusercontent.com/124020340/226554137-bdb0afe8-ed57-449a-94bb-010aad9818ec.gif">
+With Selefra, you can engage in conversations with GPT models, which will analyze the information and provide relevant suggestions for security, cost, and architecture checks, helping you better manage their cloud resources, enhance security, reduce costs, and optimize architecture design.
+
+<img align="right" width="570" alt="img_code" src="https://user-images.githubusercontent.com/124020340/232016353-67b21268-ae70-47a9-a848-cad0f2fce66f.gif">
 
 #### 🔥 Policy as Code
 
@@ -94,11 +96,13 @@ For quick start, run this demo, it should take less than a few minutes:
     selefra apply 
     ```
    
-4. **Use GPT 🔥**
+## 🔥 Analyze cloud resources using GPT
 
-    ```bash
-    selefra gpt -q "Help me query EBS volumes that are not encrypted" --openai_api_key=<Your OPENAI_API_KEY>
-    ```
+You can refer to the [documentation](https://selefra-web-opz7.vercel.app/docs/get-started#use-gpt)  to configure your OPENAPI_API_KEY in advance and start analyzing your cloud resources
+
+```bash
+selefra gpt <"what you want to analyze"> --openai_mode=gpt-3.5 --openai_limit=5 --openai_api_key=<Your Openai Api Key>
+```
 
 ## Selefra Community Ecosystem
 
