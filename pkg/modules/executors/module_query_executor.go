@@ -395,7 +395,7 @@ AND table_schema = '%s';`
 				break
 			}
 		}
-
+		tableNames = append(tableNames, tableName)
 		tables, err := x.filterTables(ctx, tableNames, ty, openaiApiKey, openaiMode, rulePlan)
 		if err != nil {
 			fmt.Println(err)
