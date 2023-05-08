@@ -13,6 +13,7 @@ func TestApply(t *testing.T) {
 	downloadWorkspace := "./test_download"
 	Instructions := make(map[string]interface{})
 	Instructions["output"] = "json"
+	Instructions["dir"] = "./ssss"
 	err := Apply(context.Background(), Instructions, projectWorkspace, downloadWorkspace)
 	assert.Nil(t, err)
 }

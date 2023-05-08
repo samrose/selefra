@@ -14,6 +14,7 @@ import (
 	"github.com/selefra/selefra/pkg/registry"
 	"github.com/selefra/selefra/pkg/utils"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -250,6 +251,25 @@ func (x *ModuleQueryExecutorWorker) execRulePlan(ctx context.Context, rulePlan *
 
 	Title := rulePlan.MetadataBlock.Title
 
+	var f *os.File
+	var err error
+	if x.moduleQueryExecutor != nil &&
+		x.moduleQueryExecutor.options.Plan != nil &&
+		x.moduleQueryExecutor.options.Plan.Instruction != nil &&
+		x.moduleQueryExecutor.options.Plan.Instruction["dir"] != nil {
+		dir := x.moduleQueryExecutor.options.Plan.Instruction["dir"].(string)
+		filtPath := filepath.Join(dir, "output")
+		if _, err := os.Stat(filtPath); os.IsNotExist(err) {
+			os.MkdirAll(filtPath, os.ModePerm)
+		}
+		fileName := filepath.Join(filtPath, Title+".txt")
+		f, err = os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+	}
+
 	str := utils.GenerateString(Severity+Title, "·", "%d\n")
 	str += fmt.Sprintf("Description: %s\n", rulePlan.MetadataBlock.Description)
 	str += fmt.Sprintf("Results:\n")
@@ -258,11 +278,15 @@ func (x *ModuleQueryExecutorWorker) execRulePlan(ctx context.Context, rulePlan *
 	for _, storages := range storagesMap {
 		for _, storage := range storages {
 			output, snum := x.execStorageQuery(ctx, rulePlan, storage)
+			if f != nil {
+				f.WriteString(output)
+			}
 			num += snum
 			str += output
 			// TODO Stage log
 		}
 	}
+
 	// TODO log
 
 	defer func() {

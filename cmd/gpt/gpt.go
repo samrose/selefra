@@ -26,6 +26,7 @@ func NewGPTCmd() *cobra.Command {
 			}
 			query := args[0]
 			openaiApiKey, _ := cmd.PersistentFlags().GetString("openai_api_key")
+			dir, _ := cmd.PersistentFlags().GetString("dir")
 			openaiMode, _ := cmd.PersistentFlags().GetString("openai_mode")
 			openaiLimit, _ := cmd.PersistentFlags().GetUint64("openai_limit")
 			output, _ := cmd.PersistentFlags().GetString("output")
@@ -38,6 +39,7 @@ func NewGPTCmd() *cobra.Command {
 
 			instructions := make(map[string]interface{})
 			instructions["query"] = query
+			instructions["dir"] = dir
 			instructions["openai_api_key"] = openaiApiKey
 			instructions["openai_mode"] = openaiMode
 			instructions["openai_limit"] = openaiLimit
@@ -52,6 +54,7 @@ func NewGPTCmd() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().StringP("output", "p", "", "display content format")
+	cmd.PersistentFlags().StringP("dir", "d", "", "define the output directory")
 	cmd.PersistentFlags().StringP("openai_api_key", "k", "", "your openai_api_key")
 	cmd.PersistentFlags().StringP("openai_mode", "m", "", "what mode to use for analysis")
 	cmd.PersistentFlags().Uint64P("openai_limit", "i", 10, "how many pieces were analyzed in total")
