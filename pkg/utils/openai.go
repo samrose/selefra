@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/sashabaranov/go-openai"
 	"strings"
@@ -178,7 +177,8 @@ func OpenApiClient(ctx context.Context, sk string, mode string, promptType strin
 	case GPT4:
 		return GPT4TurboFunc(ctx, client, fmt.Sprintf(promptMap[promptType], args...))
 	}
-	return "", errors.New("mode not found")
+	fmt.Println("Failed to find matching GPT version [\"gpt-3.5\", \"gpt-3\", \"gpt-4\"], running with \"gpt-3.5\" by default.")
+	return GPT3Dot5TurboFunc(ctx, client, fmt.Sprintf(promptMap[promptType], args...))
 }
 
 func GPT3Dot5TurboFunc(ctx context.Context, client *openai.Client, prompt string) (string, error) {
