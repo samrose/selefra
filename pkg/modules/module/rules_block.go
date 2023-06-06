@@ -3,8 +3,6 @@ package module
 import (
 	"fmt"
 	"github.com/selefra/selefra-provider-sdk/provider/schema"
-	"github.com/selefra/selefra/pkg/utils"
-	"path/filepath"
 	"strings"
 )
 
@@ -235,14 +233,15 @@ func (x *RuleMetadataBlock) Check(module *Module, validatorContext *ValidatorCon
 			errorTips := fmt.Sprintf("Rule %s metadata remediation file path can not contains ..", x.runtime.rule.Name)
 			report := RenderErrorTemplate(errorTips, x.GetNodeLocation("remediation"+NodeLocationSelfValue))
 			diagnostics.AddErrorMsg(report)
-		} else {
-			remediationFileExists := filepath.Join(utils.AbsPath(module.ModuleLocalDirectory), x.Remediation)
-			if !utils.Exists(remediationFileExists) {
-				errorTips := fmt.Sprintf("Rule %s metadata remediation file do not exists or it is is not file", x.runtime.rule.Name)
-				report := RenderErrorTemplate(errorTips, x.GetNodeLocation("remediation"+NodeLocationSelfValue))
-				diagnostics.AddErrorMsg(report)
-			}
 		}
+		//else {
+		//	remediationFileExists := filepath.Join(utils.AbsPath(module.ModuleLocalDirectory), x.Remediation)
+		//	if !utils.Exists(remediationFileExists) {
+		//		errorTips := fmt.Sprintf("Rule %s metadata remediation file do not exists or it is not file", x.runtime.rule.Name)
+		//		report := RenderErrorTemplate(errorTips, x.GetNodeLocation("remediation"+NodeLocationSelfValue))
+		//		diagnostics.AddErrorMsg(report)
+		//	}
+		//}
 	}
 
 	return diagnostics

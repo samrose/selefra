@@ -572,7 +572,8 @@ func (x *ModuleQueryExecutorWorker) renderRuleMetadata(ctx context.Context, rule
 		markdownFileFullPath := filepath.Join(rulePlan.Module.ModuleLocalDirectory, metadata.Remediation)
 		file, err := os.ReadFile(markdownFileFullPath)
 		if err != nil {
-			return diagnostics.AddErrorMsg("read file %s error: %s", markdownFileFullPath, err.Error())
+			return nil
+			//return diagnostics.AddErrorMsg("read file %s error: %s", markdownFileFullPath, err.Error())
 		}
 		metadata.Remediation = string(file)
 	}
