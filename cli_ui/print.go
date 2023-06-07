@@ -33,6 +33,17 @@ var (
 	printer     *uiPrinter
 )
 
+var (
+	YellowColor  = color.New(color.FgYellow).SprintFunc()
+	RedColor     = color.New(color.FgRed).SprintFunc()
+	GreenColor   = color.New(color.FgGreen).SprintFunc()
+	BlueColor    = color.New(color.FgBlue).SprintFunc()
+	MagentaColor = color.New(color.FgMagenta).SprintFunc()
+	BlackColor   = color.New(color.FgBlack).SprintFunc()
+	CyanColor    = color.New(color.FgCyan).SprintFunc()
+	WhiteColor   = color.New(color.FgWhite).SprintFunc()
+)
+
 //// fsync write msg to p.fw
 //func (p *uiPrinter) fsync(color *color.Color, msg string) {
 //	jsonLog := LogJSON{
@@ -294,7 +305,7 @@ func PrintDiagnostic(diagnostics []*schema.Diagnostic) error {
 	var err error
 	for _, diagnostic := range diagnostics {
 		logLevel := SDKLogLevelToCliLevel(diagnostic.Level())
-		if  int(logLevel)>= int(hclog.LevelFromString(global.LogLevel())) {
+		if int(logLevel) >= int(hclog.LevelFromString(global.LogLevel())) {
 			defaultLogger.Log(logLevel, diagnostic.Content())
 			Println(levelColor[logLevel], diagnostic.Content())
 			if diagnostic.Level() == schema.DiagnosisLevelError {

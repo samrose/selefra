@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-getter"
 	"github.com/selefra/selefra-provider-sdk/grpc/shard"
 	"github.com/selefra/selefra-provider-sdk/provider/schema"
+	"github.com/selefra/selefra/cli_ui"
 	"github.com/selefra/selefra/pkg/message"
 	"github.com/selefra/selefra/pkg/modules/module"
 	"github.com/selefra/selefra/pkg/modules/planner"
@@ -225,7 +226,13 @@ func (x *ModuleQueryExecutorWorker) Run(ctx context.Context) {
 			}
 			x.sendMessage(schema.NewDiagnostics().AddInfo("\t- \"%s\" Rule Completed", plan.RuleBlock.Name))
 		}
-		x.sendMessage(schema.NewDiagnostics().AddInfo("\nLoaded: %d policies to loaded, %d Critical, %d High, %d Medium, %d Low, %d Informational.\n", num, secRuleMap["Severity"], secRuleMap["High"], secRuleMap["Medium"], secRuleMap["Low"], secRuleMap["Informational"]))
+		Critical := cli_ui.MagentaColor(fmt.Sprintf("%d Critical", secRuleMap["Critical"]))
+		High := cli_ui.RedColor(fmt.Sprintf("%d High", secRuleMap["High"]))
+		Medium := cli_ui.YellowColor(fmt.Sprintf("%d Medium", secRuleMap["Medium"]))
+		Low := cli_ui.BlueColor(fmt.Sprintf("%d Low", secRuleMap["Low"]))
+		Informational := cli_ui.GreenColor(fmt.Sprintf("%d Informational", secRuleMap["Informational"]))
+
+		x.sendMessage(schema.NewDiagnostics().AddInfo("\nLoaded: %d policies to loaded, %s , %s , %s , %s , %s.\n", num, Critical, High, Medium, Low, Informational))
 
 		for i := range plans {
 			x.execRulePlan(ctx, plans[i], secMap)
@@ -235,7 +242,13 @@ func (x *ModuleQueryExecutorWorker) Run(ctx context.Context) {
 		for s := range secMap {
 			totel += secMap[s]
 		}
-		x.sendMessage(schema.NewDiagnostics().AddInfo("Summary: Total %d Issues, %d Critical, %d High, %d Medium, %d Low, %d Informational.\n", totel, secMap["Critical"], secMap["High"], secMap["Medium"], secMap["Low"], secMap["Informational"]))
+		secCritical := cli_ui.MagentaColor(fmt.Sprintf("%d Critical", secMap["Critical"]))
+		secHigh := cli_ui.RedColor(fmt.Sprintf("%d High", secMap["High"]))
+		secMedium := cli_ui.YellowColor(fmt.Sprintf("%d Medium", secMap["Medium"]))
+		secLow := cli_ui.BlueColor(fmt.Sprintf("%d Low", secMap["Low"]))
+		secInformational := cli_ui.GreenColor(fmt.Sprintf("%d Informational", secMap["Informational"]))
+
+		x.sendMessage(schema.NewDiagnostics().AddInfo("Summary: Total %d Issues, %s , %s , %s , %s , %s.\n", totel, secCritical, secHigh, secMedium, secLow, secInformational))
 	}()
 }
 
@@ -246,7 +259,6 @@ func (x *ModuleQueryExecutorWorker) sendMessage(diagnostics *schema.Diagnostics)
 }
 
 func (x *ModuleQueryExecutorWorker) execRulePlan(ctx context.Context, rulePlan *planner.RulePlan, secMap map[string]int) {
-
 	Severity := fmt.Sprintf("[%s] ", rulePlan.MetadataBlock.Severity)
 
 	Title := rulePlan.MetadataBlock.Title
@@ -270,7 +282,19 @@ func (x *ModuleQueryExecutorWorker) execRulePlan(ctx context.Context, rulePlan *
 		defer f.Close()
 	}
 
-	str := utils.GenerateString(Severity+Title, "·", "%d\n")
+	str := utils.GenerateString(Severity+Title, "·", "%d")
+	switch rulePlan.MetadataBlock.Severity {
+	case "Critical":
+		str = cli_ui.MagentaColor(str)
+	case "High":
+		str = cli_ui.RedColor(str)
+	case "Medium":
+		str = cli_ui.YellowColor(str)
+	case "Low":
+		str = cli_ui.BlueColor(str)
+	case "Informational":
+		str = cli_ui.GreenColor(str)
+	}
 	str += fmt.Sprintf("Description: %s\n", rulePlan.MetadataBlock.Description)
 	str += fmt.Sprintf("Results:\n")
 	var num int

@@ -34,7 +34,7 @@ providers:
     sleep-seconds: 1
     max_goroutines: 1
 
-#rules:
+rules:
 #  - name: bucket_versioning_is_disabled
 #    query: "Please help me analyze the vulnerabilities in AWS S3?"
 #    output: "S3 bucket versioning is disabled, arn: {{.arn}}"
