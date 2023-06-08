@@ -18,7 +18,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"sync"
 	"text/template"
@@ -323,9 +322,10 @@ func (x *ModuleQueryExecutorWorker) execRulePlan(ctx context.Context, rulePlan *
 }
 
 func isSql(query string) bool {
-	pattern := "(?i)\\b(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|TRUNCATE|GRANT|REVOKE)\\b"
-	re := regexp.MustCompile(pattern)
-	return re.MatchString(query)
+	if strings.Contains(query, "select") {
+		return true
+	}
+	return false
 }
 
 func (x *ModuleQueryExecutorWorker) FmtOutputStr(rule *module.RuleBlock, providerContext *planner.ProviderContext) (logStr string) {
