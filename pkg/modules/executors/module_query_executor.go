@@ -294,7 +294,7 @@ func (x *ModuleQueryExecutorWorker) execRulePlan(ctx context.Context, rulePlan *
 	case "Informational":
 		str = cli_ui.GreenColor(str)
 	}
-	str += fmt.Sprintf("Description: %s\n", rulePlan.MetadataBlock.Description)
+	str += fmt.Sprintf("\nDescription: %s\n", rulePlan.MetadataBlock.Description)
 	str += fmt.Sprintf("Results:\n")
 	var num int
 	storagesMap := x.moduleQueryExecutor.options.ProviderExpandMap
