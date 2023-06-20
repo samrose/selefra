@@ -322,6 +322,7 @@ func (x *ModuleQueryExecutorWorker) execRulePlan(ctx context.Context, rulePlan *
 }
 
 func isSql(query string) bool {
+	query = strings.ToLower(query)
 	if strings.Contains(query, "select") {
 		return true
 	}
@@ -394,7 +395,6 @@ func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePl
 			}
 		}
 	} else {
-
 		openaiApiKey := rulePlan.Module.SelefraBlock.GetOpenaiApiKey()
 		openaiMode := rulePlan.Module.SelefraBlock.GetOpenaiMode()
 		openaiLimit := rulePlan.Module.SelefraBlock.GetOpenaiLimit()
