@@ -251,12 +251,17 @@ func (x *ProjectCloudLifeCycleExecutor) UploadIssue(ctx context.Context, r *Rule
 
 // Convert the query results of the rules into a format uploaded to the Cloud
 func (x *ProjectCloudLifeCycleExecutor) convertRuleQueryResultToIssueUploadRequest(r *RuleQueryResult) *issue.UploadIssueStream_Request {
+	labels := make(map[string]string)
+
+	for s := range r.RuleBlock.Labels {
+		labels[s] = utils.Strava(r.RuleBlock.Labels[s])
+	}
 
 	// rule
 	rule := &issue.UploadIssueStream_Rule{
 		Name:   r.RuleBlock.Name,
 		Query:  r.RuleBlock.Query,
-		Labels: r.RuleBlock.Labels,
+		Labels: labels,
 		Output: r.Row.String(),
 	}
 	if r.RuleBlock.MetadataBlock != nil {

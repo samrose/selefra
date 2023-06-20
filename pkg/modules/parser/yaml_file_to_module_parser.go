@@ -76,7 +76,7 @@ func (x *YamlFileToModuleParser) Parse() (*module.Module, *schema.Diagnostics) {
 					yamlFileModule.RulesBlock = module.RulesBlock{
 						&module.RuleBlock{
 							Name:   "CloudChat",
-							Labels: map[string]string{"Initiator": "GPT"},
+							Labels: map[string]interface{}{"Initiator": "GPT"},
 							MetadataBlock: &module.RuleMetadataBlock{
 								Id:          "GPT Rule",
 								Title:       "GPT mode automatic analysis",
@@ -114,6 +114,18 @@ func (x *YamlFileToModuleParser) parseUintValueWithDiagnosticsAndSetLocation(blo
 
 func (x *YamlFileToModuleParser) parseStringValueWithDiagnosticsAndSetLocation(block module.Block, fieldName string, entry *nodeEntry, blockBasePath string, diagnostics *schema.Diagnostics) string {
 	valueString := x.parseStringWithDiagnostics(entry.value, blockBasePath+"."+fieldName, diagnostics)
+
+	if entry.key != nil {
+		x.setLocationWithDiagnostics(block, fieldName+module.NodeLocationSelfKey, blockBasePath, entry.key, diagnostics)
+	}
+
+	x.setLocationWithDiagnostics(block, fieldName+module.NodeLocationSelfValue, blockBasePath, entry.value, diagnostics)
+
+	return valueString
+}
+
+func (x *YamlFileToModuleParser) parseInterfaceValueWithDiagnosticsAndSetLocation(block module.Block, fieldName string, entry *nodeEntry, blockBasePath string, diagnostics *schema.Diagnostics) interface{} {
+	valueString := x.parseInterfaceWithDiagnostics(entry.value, blockBasePath+"."+fieldName, diagnostics)
 
 	if entry.key != nil {
 		x.setLocationWithDiagnostics(block, fieldName+module.NodeLocationSelfKey, blockBasePath, entry.key, diagnostics)
@@ -192,7 +204,7 @@ func (x *YamlFileToModuleParser) parseStringSliceAndSetLocation(block module.Blo
 	return elementSlice
 }
 
-func (x *YamlFileToModuleParser) parseStringMapAndSetLocation(block module.Block, fieldName string, entry *nodeEntry, blockBasePath string, diagnostics *schema.Diagnostics) map[string]string {
+func (x *YamlFileToModuleParser) parseStringMapAndSetLocation(block module.Block, fieldName string, entry *nodeEntry, blockBasePath string, diagnostics *schema.Diagnostics) map[string]interface{} {
 
 	blockPath := blockBasePath + "." + fieldName
 
@@ -208,14 +220,14 @@ func (x *YamlFileToModuleParser) parseStringMapAndSetLocation(block module.Block
 		return nil
 	}
 
-	m := make(map[string]string, 0)
+	m := make(map[string]interface{}, 0)
 	for key, entry := range toMap {
-		if entry.value.Kind != yaml.ScalarNode {
-			diagnostics.AddDiagnostics(x.buildNodeErrorMsgForScalarType(entry.key, blockPath, "string"))
+		if entry.value == nil {
+			diagnostics.AddDiagnostics(x.buildNodeErrorMsgForScalarType(entry.key, blockPath, "no empty"))
 			continue
 		}
 
-		m[key] = x.parseStringValueWithDiagnosticsAndSetLocation(block, fieldName+"."+key, entry, blockBasePath, diagnostics)
+		m[key] = x.parseInterfaceValueWithDiagnosticsAndSetLocation(block, fieldName+"."+key, entry, blockBasePath, diagnostics)
 	}
 
 	x.setLocationKVWithDiagnostics(block, fieldName, blockPath, entry, diagnostics)
@@ -272,6 +284,10 @@ func (x *YamlFileToModuleParser) parseStringWithDiagnostics(node *yaml.Node, blo
 		diagnostics.AddDiagnostics(x.buildNodeErrorMsgForScalarType(node, blockPath, "string"))
 		return ""
 	}
+}
+
+func (x *YamlFileToModuleParser) parseInterfaceWithDiagnostics(node *yaml.Node, blockPath string, diagnostics *schema.Diagnostics) interface{} {
+	return node.Value
 }
 
 type nodeEntry struct {

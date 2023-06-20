@@ -13,6 +13,10 @@ rules:
       resource_region: '{{.region}}'
       resource_type: S3
       bucket_url: 'https://{{.name}}.s3.{{.region}}.amazonaws.com'
+      test:
+        - test-b:
+            test: test
+            test1: test1
     metadata:
       author: Selefra
       description: Ensure to configure secure CORS rules for the Bucket.

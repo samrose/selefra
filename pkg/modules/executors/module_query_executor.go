@@ -351,8 +351,10 @@ func (x *ModuleQueryExecutorWorker) FmtOutputStr(rule *module.RuleBlock, provide
 		logStr = string(jsonBytes)
 	default:
 		labelsStr := ""
-		for _, label := range rule.Labels {
-			labelsStr += fmt.Sprintf("%s ", label)
+		for key, label := range rule.Labels {
+			if utils.HasOne([]string{"resource_account_id,resource_id,resource_region,resource_type"}, key) {
+				labelsStr += fmt.Sprintf("%s ", label)
+			}
 		}
 		logStr = utils.GenerateString("\t"+rule.Output, " ", labelsStr+"\n")
 	}
@@ -531,14 +533,17 @@ func (x *ModuleQueryExecutorWorker) renderRule(ctx context.Context, rulePlan *pl
 
 	// labels
 	if len(ruleBlock.Labels) > 0 {
-		labels := make(map[string]string)
+		labels := make(map[string]interface{})
 		for key, value := range rulePlan.Labels {
-			newValue, err := rowScope.RenderingTemplate(value, value)
-			if err != nil {
-				// TODO Construct error context
-				return nil, diagnostics.AddErrorMsg("render rule labels error: %s", err.Error())
+			v, ok := value.(string)
+			if ok {
+				newValue, err := rowScope.RenderingTemplate(v, v)
+				if err != nil {
+					// TODO Construct error context
+					return nil, diagnostics.AddErrorMsg("render rule labels error: %s", err.Error())
+				}
+				labels[key] = newValue
 			}
-			labels[key] = newValue
 		}
 		ruleBlock.Labels = labels
 	}

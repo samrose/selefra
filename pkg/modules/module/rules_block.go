@@ -91,7 +91,7 @@ type RuleBlock struct {
 	Query string `yaml:"query" json:"query"`
 
 	// Some custom tags
-	Labels map[string]string `yaml:"labels" json:"labels"`
+	Labels map[string]interface{} `yaml:"labels" json:"labels"`
 
 	// Metadata for the policy
 	MetadataBlock *RuleMetadataBlock `json:"metadata" yaml:"metadata"`

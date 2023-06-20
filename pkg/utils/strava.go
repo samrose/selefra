@@ -105,3 +105,12 @@ func GenerateString(leftVar, middleVar, rightVar string) string {
 
 	return result
 }
+
+func HasOne(arr []string, key string) bool {
+	for _, v := range arr {
+		if v == key {
+			return true
+		}
+	}
+	return false
+}
