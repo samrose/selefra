@@ -39,9 +39,10 @@ func (x *YamlFileToModuleParser) parseModulesBlock(moduleBlockKeyNode, moduleBlo
 // ------------------------------------------------ ---------------------------------------------------------------------
 
 const (
-	ModuleBlockNameFieldName  = "name"
-	ModuleBlockUsesFieldName  = "uses"
-	ModuleBlockInputFieldName = "input"
+	ModuleBlockNameFieldName   = "name"
+	ModuleBlockUsesFieldName   = "uses"
+	ModuleBlockFilterFieldName = "filter"
+	ModuleBlockInputFieldName  = "input"
 )
 
 // Parse module block
@@ -63,6 +64,9 @@ func (x *YamlFileToModuleParser) parseModuleBlock(moduleIndex int, moduleBlockNo
 
 		case ModuleBlockUsesFieldName:
 			moduleBlock.Uses = x.parseStringSliceAndSetLocation(moduleBlock, ModuleBlockUsesFieldName, entry, blockPath, diagnostics)
+
+		case ModuleBlockFilterFieldName:
+			moduleBlock.Filter = x.parseFilterValueWithDiagnosticsAndSetLocation(moduleBlock, ModuleBlockFilterFieldName, entry, blockPath, diagnostics)
 
 		case ModuleBlockInputFieldName:
 			inputMap := x.parseModuleInputBlock(moduleBlock, moduleIndex, entry.key, entry.value, diagnostics)

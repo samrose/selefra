@@ -8,7 +8,7 @@ import (
 )
 
 func TestYamlFileToModuleParser_parseRulesBlock(t *testing.T) {
-	module, diagnostics := NewYamlFileToModuleParser("./test_data/test_parse_rules/modules.yaml").Parse()
+	module, diagnostics := NewYamlFileToModuleParser("./test_data/test_parse_rules/modules.yaml", make(map[string]interface{})).Parse()
 	if utils.IsNotEmpty(diagnostics) {
 		t.Log(diagnostics.ToString())
 	}

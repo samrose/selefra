@@ -78,6 +78,12 @@ func (x ModulesBlock) ModulesInputMap() map[string]*ModuleBlock {
 
 // ------------------------------------------------- --------------------------------------------------------------------
 
+type Filter struct {
+	Name     string `yaml:"name" json:"name"`
+	Severity string `yaml:"severity" json:"severity"`
+	Provider string `yaml:"provider" json:"provider"`
+}
+
 // ModuleBlock Used to represent a common element in the modules array
 type ModuleBlock struct {
 
@@ -86,6 +92,9 @@ type ModuleBlock struct {
 
 	// What other modules are referenced by this module
 	Uses []string `yaml:"uses" json:"uses"`
+
+	// The module supports specifying some filters
+	Filter []Filter `yaml:"filter" json:"filter"`
 
 	// The module supports specifying some variables
 	Input map[string]any `yaml:"input" json:"input"`

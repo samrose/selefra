@@ -112,6 +112,12 @@ func (x *YamlFileToModuleParser) parseUintValueWithDiagnosticsAndSetLocation(blo
 	return valueInteger
 }
 
+func (x *YamlFileToModuleParser) parseFilterValueWithDiagnosticsAndSetLocation(block module.Block, fieldName string, entry *nodeEntry, blockBasePath string, diagnostics *schema.Diagnostics) []module.Filter {
+	filters := x.parseFilterWithDiagnostics(entry.value, blockBasePath+"."+fieldName, diagnostics)
+
+	return filters
+}
+
 func (x *YamlFileToModuleParser) parseStringValueWithDiagnosticsAndSetLocation(block module.Block, fieldName string, entry *nodeEntry, blockBasePath string, diagnostics *schema.Diagnostics) string {
 	valueString := x.parseStringWithDiagnostics(entry.value, blockBasePath+"."+fieldName, diagnostics)
 
@@ -287,7 +293,49 @@ func (x *YamlFileToModuleParser) parseStringWithDiagnostics(node *yaml.Node, blo
 }
 
 func (x *YamlFileToModuleParser) parseInterfaceWithDiagnostics(node *yaml.Node, blockPath string, diagnostics *schema.Diagnostics) interface{} {
+	// 如果节点类型是map或者list，需要转换成json再转换成interface
+	if node.Kind == yaml.MappingNode {
+		var mapNode map[string]interface{}
+		b, err := yaml.Marshal(node)
+		if err != nil {
+			diagnostics.AddErrorMsg("file = %s, marshal node %s error: %s", x.yamlFilePath, blockPath, err.Error())
+			return nil
+		}
+		err = yaml.Unmarshal(b, &mapNode)
+		if err != nil {
+			diagnostics.AddErrorMsg("file = %s, unmarshal node %s error: %s", x.yamlFilePath, blockPath, err.Error())
+			return nil
+		}
+		return mapNode
+	}
+	if node.Kind == yaml.SequenceNode {
+		var listNode []interface{}
+		b, err := yaml.Marshal(node)
+		if err != nil {
+			diagnostics.AddErrorMsg("file = %s, marshal node %s error: %s", x.yamlFilePath, blockPath, err.Error())
+			return nil
+		}
+		err = yaml.Unmarshal(b, &listNode)
+		if err != nil {
+			diagnostics.AddErrorMsg("file = %s, unmarshal node %s error: %s", x.yamlFilePath, blockPath, err.Error())
+			return nil
+		}
+		return listNode
+	}
 	return node.Value
+}
+
+func (x *YamlFileToModuleParser) parseFilterWithDiagnostics(node *yaml.Node, blockPath string, diagnostics *schema.Diagnostics) []module.Filter {
+	var filters []module.Filter
+	b, err := yaml.Marshal(node)
+	if err != nil {
+		return []module.Filter{}
+	}
+	err = yaml.Unmarshal(b, &filters)
+	if err != nil {
+		return []module.Filter{}
+	}
+	return filters
 }
 
 type nodeEntry struct {
@@ -359,6 +407,10 @@ func (x *YamlFileToModuleParser) buildNodeErrorMsgForUnSupport(keyNode, valueNod
 }
 
 func (x *YamlFileToModuleParser) buildNodeErrorMsgForScalarType(node *yaml.Node, blockPath string, scalarTypeName string) *schema.Diagnostics {
+	return x.buildNodeErrorMsg(blockPath, node, fmt.Sprintf("syntax error, %s must is a %s type", blockPath, scalarTypeName))
+}
+
+func (x *YamlFileToModuleParser) buildNodeErrorMsgForSequenceType(node *yaml.Node, blockPath string, scalarTypeName string) *schema.Diagnostics {
 	return x.buildNodeErrorMsg(blockPath, node, fmt.Sprintf("syntax error, %s must is a %s type", blockPath, scalarTypeName))
 }
 

@@ -155,7 +155,22 @@ func (x *ModuleQueryExecutor) RunQueryWorker(ctx context.Context, channel chan *
 func (x *ModuleQueryExecutor) toRulePlanChannel(rulePlanSlice []*planner.RulePlan) chan *planner.RulePlan {
 	rulePlanChannel := make(chan *planner.RulePlan, len(rulePlanSlice))
 	for _, rulePlan := range rulePlanSlice {
-		rulePlanChannel <- rulePlan
+		var filters []module.Filter
+		if rulePlan.Module != nil && rulePlan.Module.ParentModule != nil {
+			for _, pm := range rulePlan.Module.ParentModule.ModulesBlock {
+				filters = append(filters, pm.Filter...)
+			}
+		}
+		if len(filters) > 0 {
+			for _, filter := range filters {
+				if filter.Name == rulePlan.RuleBlock.Name ||
+					filter.Severity == rulePlan.RuleBlock.MetadataBlock.Severity {
+					rulePlanChannel <- rulePlan
+				}
+			}
+		} else {
+			rulePlanChannel <- rulePlan
+		}
 	}
 	close(rulePlanChannel)
 	return rulePlanChannel

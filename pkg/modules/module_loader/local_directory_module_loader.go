@@ -132,6 +132,12 @@ func (x *LocalDirectoryModuleLoader) Load(ctx context.Context) (*module.Module, 
 	if !loadSuccess {
 		return nil, false
 	}
+	for _, subModule := range subModuleSlice {
+		subModule.ProvidersBlock = finalModule.ProvidersBlock
+		subModule.SelefraBlock = finalModule.SelefraBlock
+		subModule.ParentModule = finalModule
+		//subModule.VariablesBlock = finalModule.VariablesBlock
+	}
 	finalModule.SubModules = subModuleSlice
 	finalModule.Source = x.options.Source
 	finalModule.ModuleLocalDirectory = x.options.ModuleDirectory
@@ -144,7 +150,6 @@ func (x *LocalDirectoryModuleLoader) loadSubModules(ctx context.Context, modules
 	subModuleSlice := make([]*module.Module, 0)
 	for _, moduleBlock := range modulesBlock {
 		for index, useModuleSource := range moduleBlock.Uses {
-
 			useLocation := moduleBlock.GetNodeLocation(fmt.Sprintf("uses[%d]%s", index, module.NodeLocationSelfValue))
 			//moduleDirectoryPath := filepath.Dir(useLocation.Path)
 
