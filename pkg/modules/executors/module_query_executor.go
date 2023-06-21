@@ -161,14 +161,10 @@ func (x *ModuleQueryExecutor) toRulePlanChannel(rulePlanSlice []*planner.RulePla
 				filters = append(filters, pm.Filter...)
 			}
 		}
-		if len(filters) > 0 {
-			for _, filter := range filters {
-				if filter.Name == rulePlan.RuleBlock.Name ||
-					filter.Severity == rulePlan.RuleBlock.MetadataBlock.Severity {
-					rulePlanChannel <- rulePlan
-				}
+		for _, filter := range filters {
+			if filter.Name == rulePlan.RuleBlock.Name {
+				continue
 			}
-		} else {
 			rulePlanChannel <- rulePlan
 		}
 	}
