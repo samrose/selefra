@@ -149,52 +149,51 @@ func (x *LocalDirectoryModuleLoader) Load(ctx context.Context) (*module.Module, 
 func (x *LocalDirectoryModuleLoader) loadSubModules(ctx context.Context, modulesBlock module.ModulesBlock) ([]*module.Module, bool) {
 	subModuleSlice := make([]*module.Module, 0)
 	for _, moduleBlock := range modulesBlock {
-		for index, useModuleSource := range moduleBlock.Uses {
-			useLocation := moduleBlock.GetNodeLocation(fmt.Sprintf("uses[%d]%s", index, module.NodeLocationSelfValue))
-			//moduleDirectoryPath := filepath.Dir(useLocation.Path)
+		useModuleSource := moduleBlock.Uses
+		useLocation := moduleBlock.GetNodeLocation(fmt.Sprintf("uses"))
+		//moduleDirectoryPath := filepath.Dir(useLocation.Path)
 
-			switch NewModuleLoaderBySource(useModuleSource) {
+		switch NewModuleLoaderBySource(moduleBlock.Uses) {
 
-			// Unsupported loading mode
-			case ModuleLoaderTypeInvalid:
-				errorReport := module.RenderErrorTemplate(fmt.Sprintf("invalid module uses source %s, unsupported module loader", useModuleSource), useLocation)
-				x.options.MessageChannel.Send(schema.NewDiagnostics().AddErrorMsg(errorReport))
-				return nil, false
+		// Unsupported loading mode
+		case ModuleLoaderTypeInvalid:
+			errorReport := module.RenderErrorTemplate(fmt.Sprintf("invalid module uses source %s, unsupported module loader", useModuleSource), useLocation)
+			x.options.MessageChannel.Send(schema.NewDiagnostics().AddErrorMsg(errorReport))
+			return nil, false
 
-			// Load the module from the bucket in S3
-			case ModuleLoaderTypeS3Bucket:
-				subModule, ok := x.loadS3BucketModule(ctx, useLocation, useModuleSource)
-				if !ok {
-					return nil, false
-				}
-				subModuleSlice = append(subModuleSlice, subModule)
-
-			case ModuleLoaderTypeGitHubRegistry:
-				subModule, ok := x.loadGitHubRegistryModule(ctx, useLocation, useModuleSource)
-				if !ok {
-					return nil, false
-				}
-				subModuleSlice = append(subModuleSlice, subModule)
-
-			case ModuleLoaderTypeLocalDirectory:
-				subModule, ok := x.loadLocalDirectoryModule(ctx, useLocation, useModuleSource)
-				if !ok {
-					return nil, false
-				}
-				subModuleSlice = append(subModuleSlice, subModule)
-
-			case ModuleLoaderTypeURL:
-				subModule, ok := x.loadURLModule(ctx, useLocation, useModuleSource)
-				if !ok {
-					return nil, false
-				}
-				subModuleSlice = append(subModuleSlice, subModule)
-
-			default:
-				errorReport := module.RenderErrorTemplate(fmt.Sprintf("module source %s can cannot be assign loader", useModuleSource), useLocation)
-				x.options.MessageChannel.Send(schema.NewDiagnostics().AddErrorMsg(errorReport))
+		// Load the module from the bucket in S3
+		case ModuleLoaderTypeS3Bucket:
+			subModule, ok := x.loadS3BucketModule(ctx, useLocation, useModuleSource)
+			if !ok {
 				return nil, false
 			}
+			subModuleSlice = append(subModuleSlice, subModule)
+
+		case ModuleLoaderTypeGitHubRegistry:
+			subModule, ok := x.loadGitHubRegistryModule(ctx, useLocation, useModuleSource)
+			if !ok {
+				return nil, false
+			}
+			subModuleSlice = append(subModuleSlice, subModule)
+
+		case ModuleLoaderTypeLocalDirectory:
+			subModule, ok := x.loadLocalDirectoryModule(ctx, useLocation, useModuleSource)
+			if !ok {
+				return nil, false
+			}
+			subModuleSlice = append(subModuleSlice, subModule)
+
+		case ModuleLoaderTypeURL:
+			subModule, ok := x.loadURLModule(ctx, useLocation, useModuleSource)
+			if !ok {
+				return nil, false
+			}
+			subModuleSlice = append(subModuleSlice, subModule)
+
+		default:
+			errorReport := module.RenderErrorTemplate(fmt.Sprintf("module source %s can cannot be assign loader", useModuleSource), useLocation)
+			x.options.MessageChannel.Send(schema.NewDiagnostics().AddErrorMsg(errorReport))
+			return nil, false
 		}
 	}
 	return subModuleSlice, true

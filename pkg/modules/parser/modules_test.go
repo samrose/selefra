@@ -1,14 +1,13 @@
 package parser
 
 import (
-	"fmt"
 	"github.com/selefra/selefra/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestYamlFileToModuleParser_parseModulesBlock(t *testing.T) {
-	module, diagnostics := NewYamlFileToModuleParser("./test_data/test_parse_modules/modules.yaml").Parse()
+	module, diagnostics := NewYamlFileToModuleParser("./test_data/test_parse_modules/modules.yaml", make(map[string]interface{})).Parse()
 	if utils.IsNotEmpty(diagnostics) {
 		t.Log(diagnostics.ToString())
 	}
@@ -37,11 +36,5 @@ func TestYamlFileToModuleParser_parseModulesBlock(t *testing.T) {
 
 	assert.NotEmpty(t, moduleBlock.GetNodeLocation("uses[0]").ReadSourceString())
 	assert.NotEmpty(t, moduleBlock.GetNodeLocation("uses[0]._value").ReadSourceString())
-
-	moduleBlock = module.ModulesBlock[0]
-	for i := 0; i < len(moduleBlock.Uses); i++ {
-		assert.NotEmpty(t, moduleBlock.GetNodeLocation(fmt.Sprintf("uses[%d]", i)).ReadSourceString())
-		assert.NotEmpty(t, moduleBlock.GetNodeLocation(fmt.Sprintf("uses[%d]._value", i)).ReadSourceString())
-	}
 
 }

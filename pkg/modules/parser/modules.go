@@ -63,7 +63,7 @@ func (x *YamlFileToModuleParser) parseModuleBlock(moduleIndex int, moduleBlockNo
 			moduleBlock.Name = x.parseStringValueWithDiagnosticsAndSetLocation(moduleBlock, ModuleBlockNameFieldName, entry, blockPath, diagnostics)
 
 		case ModuleBlockUsesFieldName:
-			moduleBlock.Uses = x.parseStringSliceAndSetLocation(moduleBlock, ModuleBlockUsesFieldName, entry, blockPath, diagnostics)
+			moduleBlock.Uses = x.parseStringValueWithDiagnosticsAndSetLocation(moduleBlock, ModuleBlockUsesFieldName, entry, blockPath, diagnostics)
 
 		case ModuleBlockFilterFieldName:
 			moduleBlock.Filter = x.parseFilterValueWithDiagnosticsAndSetLocation(moduleBlock, ModuleBlockFilterFieldName, entry, blockPath, diagnostics)

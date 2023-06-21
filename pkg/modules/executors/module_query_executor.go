@@ -161,12 +161,19 @@ func (x *ModuleQueryExecutor) toRulePlanChannel(rulePlanSlice []*planner.RulePla
 				filters = append(filters, pm.Filter...)
 			}
 		}
+
+		filterFlag := false
+
 		for _, filter := range filters {
 			if filter.Name == rulePlan.RuleBlock.Name {
-				continue
+				filterFlag = true
+				break
 			}
-			rulePlanChannel <- rulePlan
 		}
+		if filterFlag {
+			continue
+		}
+		rulePlanChannel <- rulePlan
 	}
 	close(rulePlanChannel)
 	return rulePlanChannel
