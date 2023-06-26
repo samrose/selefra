@@ -371,7 +371,7 @@ func (x *ModuleQueryExecutorWorker) FmtOutputStr(rule *module.RuleBlock, provide
 	default:
 		labelsStr := ""
 		for key, label := range rule.Labels {
-			if utils.HasOne([]string{"resource_account_id,resource_id,resource_region,resource_type"}, key) {
+			if utils.HasOne([]string{"resource_account_id", "resource_id", "resource_region", "resource_type"}, key) {
 				labelsStr += fmt.Sprintf("%s ", label)
 			}
 		}

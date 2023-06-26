@@ -12,7 +12,6 @@ func TestApply(t *testing.T) {
 	//projectWorkspace := "D:\\selefra\\workplace\\sfslack-v2-bak"
 	downloadWorkspace := "./test_download"
 	Instructions := make(map[string]interface{})
-	Instructions["output"] = "json"
 	Instructions["dir"] = "./ssss"
 	err := Apply(context.Background(), Instructions, projectWorkspace, downloadWorkspace)
 	assert.Nil(t, err)

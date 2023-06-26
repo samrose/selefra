@@ -92,7 +92,7 @@ func RemoveRepeatedElement(arr []string) (newArr []string) {
 func GenerateString(leftVar, middleVar, rightVar string) string {
 	totalLength, err := getTerminalWidth()
 	if err != nil {
-		return ""
+		totalLength = 120
 	}
 	middleLength := totalLength - 10 - len(leftVar) - len(rightVar)
 	if middleLength <= 0 {
