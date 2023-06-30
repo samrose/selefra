@@ -69,14 +69,18 @@ func (x ModulesBlock) SetNodeLocation(selector string, nodeLocation *NodeLocatio
 func (x ModulesBlock) ModulesInputMap() map[string]*ModuleBlock {
 	modulesInputMap := make(map[string]*ModuleBlock)
 	for _, subModuleBlock := range x {
-		for _, uses := range subModuleBlock.Uses {
-			modulesInputMap[uses] = subModuleBlock
-		}
+		modulesInputMap[subModuleBlock.Uses] = subModuleBlock
 	}
 	return modulesInputMap
 }
 
 // ------------------------------------------------- --------------------------------------------------------------------
+
+type Filter struct {
+	Name     string `yaml:"name" json:"name"`
+	Severity string `yaml:"severity" json:"severity"`
+	Provider string `yaml:"provider" json:"provider"`
+}
 
 // ModuleBlock Used to represent a common element in the modules array
 type ModuleBlock struct {
@@ -85,7 +89,10 @@ type ModuleBlock struct {
 	Name string `yaml:"name" json:"name"`
 
 	// What other modules are referenced by this module
-	Uses []string `yaml:"uses" json:"uses"`
+	Uses string `yaml:"uses" json:"uses"`
+
+	// The module supports specifying some filters
+	Filter []Filter `yaml:"filter" json:"filter"`
 
 	// The module supports specifying some variables
 	Input map[string]any `yaml:"input" json:"input"`

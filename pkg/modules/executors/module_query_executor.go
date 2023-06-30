@@ -155,6 +155,24 @@ func (x *ModuleQueryExecutor) RunQueryWorker(ctx context.Context, channel chan *
 func (x *ModuleQueryExecutor) toRulePlanChannel(rulePlanSlice []*planner.RulePlan) chan *planner.RulePlan {
 	rulePlanChannel := make(chan *planner.RulePlan, len(rulePlanSlice))
 	for _, rulePlan := range rulePlanSlice {
+		var filters []module.Filter
+		if rulePlan.Module != nil && rulePlan.Module.ParentModule != nil {
+			for _, pm := range rulePlan.Module.ParentModule.ModulesBlock {
+				filters = append(filters, pm.Filter...)
+			}
+		}
+
+		filterFlag := false
+
+		for _, filter := range filters {
+			if filter.Name == rulePlan.RuleBlock.Name {
+				filterFlag = true
+				break
+			}
+		}
+		if filterFlag {
+			continue
+		}
 		rulePlanChannel <- rulePlan
 	}
 	close(rulePlanChannel)
@@ -353,7 +371,7 @@ func (x *ModuleQueryExecutorWorker) FmtOutputStr(rule *module.RuleBlock, provide
 	default:
 		labelsStr := ""
 		for key, label := range rule.Labels {
-			if utils.HasOne([]string{"resource_account_id,resource_id,resource_region,resource_type"}, key) {
+			if utils.HasOne([]string{"resource_account_id", "resource_id", "resource_region", "resource_type"}, key) {
 				labelsStr += fmt.Sprintf("%s ", label)
 			}
 		}

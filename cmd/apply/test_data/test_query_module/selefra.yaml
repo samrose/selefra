@@ -1,0 +1,29 @@
+selefra:
+  cloud:
+    project: example_project
+    organization: example_org
+  #    hostname: app.selefra.io
+  connection:
+    type: postgres
+    username: postgres
+    password: pass
+    host: localhost
+    port: "5432"
+    database: postgres
+    sslmode: disable
+  name: example_project
+  cli_version: v0.0.1
+  providers:
+    - name: aws
+      source: aws
+      version: latest
+#    - name: gcp
+#      source: gcp
+#      version: ">=0.0.9,<=0.0.10"
+
+
+providers:
+  - name: aws_001
+    cache: 1d
+    provider: aws
+    max_goroutines: 100
