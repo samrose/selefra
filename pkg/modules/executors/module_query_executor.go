@@ -401,6 +401,9 @@ func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePl
 			if rows != nil {
 				for _, row := range rows.SplitRowByRow() {
 					result := x.processRuleRow(ctx, rulePlan, providerContext, row)
+					if result == nil {
+						continue
+					}
 					num++
 					resultStr += x.FmtOutputStr(result.RuleBlock, providerContext)
 				}
