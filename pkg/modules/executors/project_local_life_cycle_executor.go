@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/selefra/selefra-provider-sdk/env"
 	"github.com/selefra/selefra-provider-sdk/provider/schema"
+	"github.com/selefra/selefra-provider-sdk/storage/database_storage/postgresql_storage"
+	"github.com/selefra/selefra-provider-sdk/storage_factory"
 	"github.com/selefra/selefra/pkg/grpc/pb/log"
 	"github.com/selefra/selefra/pkg/logger"
 	"github.com/selefra/selefra/pkg/message"
@@ -198,6 +200,19 @@ func (x *ProjectLocalLifeCycleExecutor) Execute(ctx context.Context) *schema.Dia
 	}
 	x.cloudExecutor.ReportTaskStatus(log.StageType_STAGE_TYPE_PULL_INFRASTRUCTURE, log.Status_STATUS_SUCCESS)
 	x.cloudExecutor.ChangeLogStage(log.StageType_STAGE_TYPE_INFRASTRUCTURE_ANALYSIS)
+
+	pubOpt := postgresql_storage.NewPostgresqlStorageOptions(x.options.DSN)
+	pubOpt.SearchPath = "public"
+	pubStorage, d := storage_factory.NewStorage(ctx, storage_factory.StorageTypePostgresql, pubOpt)
+	if d != nil && d.HasError() {
+		x.cloudExecutor.UploadLog(ctx, d)
+		return nil
+	}
+	if x.rootModule.SelefraBlock.ConnectionBlock != nil {
+		for i := range fetchPlans {
+			pubStorage.SetKey(ctx, fetchPlans[i].ProviderConfigurationBlock.Name, fetchPlans[i].FetchToDatabaseSchema)
+		}
+	}
 
 	// exec query
 	if x.options.ProjectLifeCycleStep > ProjectLifeCycleStepQuery {
