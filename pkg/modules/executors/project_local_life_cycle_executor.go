@@ -205,7 +205,7 @@ func (x *ProjectLocalLifeCycleExecutor) Execute(ctx context.Context) *schema.Dia
 	pubOpt.SearchPath = "public"
 	pubStorage, d := storage_factory.NewStorage(ctx, storage_factory.StorageTypePostgresql, pubOpt)
 	if d != nil && d.HasError() {
-		x.cloudExecutor.UploadLog(ctx, d)
+		x.options.MessageChannel.Send(d)
 		return nil
 	}
 	if x.rootModule.SelefraBlock.ConnectionBlock != nil {
