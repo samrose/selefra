@@ -208,10 +208,8 @@ func (x *ProjectLocalLifeCycleExecutor) Execute(ctx context.Context) *schema.Dia
 		x.options.MessageChannel.Send(d)
 		return nil
 	}
-	if x.rootModule.SelefraBlock.ConnectionBlock != nil {
-		for i := range fetchPlans {
-			pubStorage.SetKey(ctx, fetchPlans[i].ProviderConfigurationBlock.Name, fetchPlans[i].FetchToDatabaseSchema)
-		}
+	for i := range fetchPlans {
+		pubStorage.SetKey(ctx, fetchPlans[i].ProviderConfigurationBlock.Name, fetchPlans[i].FetchToDatabaseSchema)
 	}
 
 	// exec query
