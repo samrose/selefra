@@ -1,5 +1,3 @@
 modules:
   - name: Misconfigure-S3
     uses: ./rules
-    filter:
-      - name: ebs_encryption_is_disabled_by_default

@@ -99,6 +99,8 @@ type RuleBlock struct {
 	// Policy output
 	Output string `yaml:"output" json:"output"`
 
+	MainTable string `yaml:"main_table" json:"main_table"`
+
 	*LocatableImpl `yaml:"-"`
 }
 
@@ -162,6 +164,7 @@ func (x *RuleBlock) Copy() *RuleBlock {
 		Query:         x.Query,
 		Labels:        x.Labels,
 		Output:        x.Output,
+		MainTable:     x.MainTable,
 		LocatableImpl: x.LocatableImpl,
 	}
 	if x.MetadataBlock != nil {
