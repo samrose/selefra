@@ -102,6 +102,7 @@ const (
 	RuleMetadataBlockRemediationFieldName = "remediation"
 	RuleMetadataBlockTitleFieldName       = "title"
 	RuleMetadataBlockDescriptionFieldName = "description"
+	RuleMetadataBlockMainTableFieldName   = "main_table"
 )
 
 func (x *YamlFileToModuleParser) parseMetadataBlock(ruleIndex int, ruleBlock *module.RuleBlock, metadataBlockKeyNode, metadataBlockValueNode *yaml.Node, diagnostics *schema.Diagnostics) *module.RuleMetadataBlock {
@@ -141,6 +142,9 @@ func (x *YamlFileToModuleParser) parseMetadataBlock(ruleIndex int, ruleBlock *mo
 
 		case RuleMetadataBlockDescriptionFieldName:
 			ruleMetadataBlock.Description = x.parseStringValueWithDiagnosticsAndSetLocation(ruleMetadataBlock, RuleMetadataBlockDescriptionFieldName, entry, blockPath, diagnostics)
+
+		case RuleMetadataBlockMainTableFieldName:
+			ruleMetadataBlock.MainTable = x.parseStringValueWithDiagnosticsAndSetLocation(ruleMetadataBlock, RuleMetadataBlockMainTableFieldName, entry, blockPath, diagnostics)
 
 		default:
 			diagnostics.AddDiagnostics(x.buildNodeErrorMsgForUnSupport(entry.key, entry.value, fmt.Sprintf("%s.%s", blockPath, key)))

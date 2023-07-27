@@ -199,6 +199,8 @@ type RuleMetadataBlock struct {
 	// Some description of the Bug
 	Description string `yaml:"description" json:"description"`
 
+	MainTable string `yaml:"main_table" json:"main_table"`
+
 	*LocatableImpl `yaml:"-"`
 	runtime        *RuleMetadataBlockRuntime
 }

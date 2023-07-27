@@ -9,6 +9,7 @@ import (
 	"github.com/selefra/selefra-provider-sdk/grpc/shard"
 	"github.com/selefra/selefra-provider-sdk/provider/schema"
 	"github.com/selefra/selefra/cli_ui"
+	"github.com/selefra/selefra/pkg/grpc/pb/issue"
 	"github.com/selefra/selefra/pkg/message"
 	"github.com/selefra/selefra/pkg/modules/module"
 	"github.com/selefra/selefra/pkg/modules/planner"
@@ -18,6 +19,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"text/template"
@@ -51,6 +53,8 @@ type RuleQueryResult struct {
 
 	// Find the row of data in issue
 	Row *schema.Row
+
+	Status issue.UploadIssueStream_Rule_Status
 }
 
 // ------------------------------------------------- --------------------------------------------------------------------
@@ -396,13 +400,55 @@ func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePl
 		//cli_ui.Infoln("Schema:")
 		//cli_ui.Infoln(schema + "\n")
 		//cli_ui.Infoln("Description:")
+		var resource_ids = []string{""}
+		var resource_id_key string
+		resource_id_key, ok := rulePlan.Labels["resource_id"].(string)
+		if ok {
+			resource_id_key = extractKey(resource_id_key)
+		}
 		for {
 			rows, d := resultSet.ReadRows(100)
 			if rows != nil {
 				for _, row := range rows.SplitRowByRow() {
-					result := x.processRuleRow(ctx, rulePlan, providerContext, row)
+					result := x.processRuleRow(ctx, rulePlan, providerContext, row, issue.UploadIssueStream_Rule_FAILED)
+					if result == nil {
+						continue
+					}
 					num++
+					resource_id, ok := result.RuleBlock.Labels["resource_id"].(string)
+					if ok {
+						resource_ids = append(resource_ids, resource_id)
+					}
 					resultStr += x.FmtOutputStr(result.RuleBlock, providerContext)
+				}
+			}
+			if utils.HasError(d) {
+				x.sendMessage(d)
+			}
+			if rows == nil || rows.RowCount() == 0 {
+				break
+			}
+		}
+
+		if strings.TrimSpace(rulePlan.RuleBlock.MetadataBlock.MainTable) == "" && (resource_id_key == "" || resource_id_key == "no available") {
+			return
+		}
+		for i := range resource_ids {
+			resource_ids[i] = fmt.Sprintf("'%s'", resource_ids[i])
+		}
+		safeQueryTemp := fmt.Sprintf("SELECT * FROM %s WHERE '%s' NOT IN (%s)", rulePlan.RuleBlock.MetadataBlock.MainTable, resource_id_key, strings.Join(resource_ids, ","))
+
+		safeSet, diagnostics := providerContext.Storage.Query(ctx, safeQueryTemp)
+		if utils.HasError(diagnostics) {
+			x.sendMessage(schema.NewDiagnostics().AddErrorMsg("rule %s exec error: %s", rulePlan.String(), diagnostics.ToString()))
+			return "", 0
+		}
+
+		for {
+			rows, d := safeSet.ReadRows(100)
+			if rows != nil {
+				for _, row := range rows.SplitRowByRow() {
+					_ = x.processRuleRow(ctx, rulePlan, providerContext, row, issue.UploadIssueStream_Rule_SUCCESS)
 				}
 			}
 			if utils.HasError(d) {
@@ -499,7 +545,7 @@ AND table_schema = '%s';`
 }
 
 // Process the row queried by the rule
-func (x *ModuleQueryExecutorWorker) processRuleRow(ctx context.Context, rulePlan *planner.RulePlan, storage *planner.ProviderContext, row *schema.Row) *RuleQueryResult {
+func (x *ModuleQueryExecutorWorker) processRuleRow(ctx context.Context, rulePlan *planner.RulePlan, storage *planner.ProviderContext, row *schema.Row, Status issue.UploadIssueStream_Rule_Status) *RuleQueryResult {
 	rowScope := planner.ExtendScope(rulePlan.RuleScope)
 
 	// Inject the queried rows into the scope
@@ -524,8 +570,8 @@ func (x *ModuleQueryExecutorWorker) processRuleRow(ctx context.Context, rulePlan
 		ProviderConfiguration: storage.ProviderConfiguration,
 		Schema:                storage.Schema,
 		Row:                   row,
+		Status:                Status,
 	}
-
 	x.moduleQueryExecutor.options.RuleQueryResultChannel.Send(result)
 	return result
 	//x.sendMessage(schema.NewDiagnostics().AddInfo(json_util.ToJsonString(ruleBlockResult)))
@@ -952,4 +998,22 @@ func (x *ModuleQueryExecutorWorker) getIssue(ctx context.Context, rows []*schema
 		}
 	}
 	return resultStr, num, nil
+}
+
+func extractKey(str string) string {
+	// 匹配 {{ .key }} 格式的字符串
+	re := regexp.MustCompile(`{{\s*\.(.*?)\s*}}`)
+	matches := re.FindStringSubmatch(str)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+
+	// 如果没有匹配到 {{ .key }} 格式的字符串，则尝试直接提取键
+	re = regexp.MustCompile(`\b(\w+)\b`)
+	matches = re.FindStringSubmatch(str)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+
+	return "" // 如果没有匹配到任何键，则返回空字符串
 }

@@ -113,8 +113,6 @@ require (
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rivo/uniseg v0.4.3 // indirect
-	github.com/rudderlabs/analytics-go/v4 v4.1.0 // indirect
-	github.com/sashabaranov/go-openai v1.5.7 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/segmentio/backo-go v1.0.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
@@ -136,7 +134,6 @@ require (
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/oauth2 v0.2.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.103.0 // indirect
@@ -149,4 +146,7 @@ require (
 require (
 	github.com/golang-infrastructure/go-trie v0.0.0-20230204150600-10750ecebaec
 	github.com/hashicorp/go-version v1.6.0
+	github.com/rudderlabs/analytics-go/v4 v4.1.0
+	github.com/sashabaranov/go-openai v1.5.7
+	golang.org/x/sys v0.6.0
 )

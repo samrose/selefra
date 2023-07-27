@@ -9,7 +9,7 @@ rules:
         ebs_encryption_enabled_by_default IS FALSE;
     labels:
       resource_account_id: '{{.account_id}}'
-      resource_id: '{{.arn}}'
+      resource_id: '{{.region}}'
       resource_region: '{{.region}}'
       resource_type: S3
       bucket_url: 'https://{{.name}}.s3.{{.region}}.amazonaws.com'
@@ -19,7 +19,6 @@ rules:
             test1: test1
     metadata:
       author: Selefra
-      description: Ensure to configure secure CORS rules for the Bucket.
       id: SF010117
       provider: AWS
       remediation:
@@ -28,4 +27,5 @@ rules:
         - Security
         - Misconfiguration
       title: S3 Bucket is not configured with CORS rules
+      main_table: "aws_ec2_regional_configs"
     output: "EBS encryption is disabled by default, region id: {{.region}}"
