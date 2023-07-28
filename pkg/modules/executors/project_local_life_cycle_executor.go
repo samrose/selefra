@@ -211,7 +211,7 @@ func (x *ProjectLocalLifeCycleExecutor) Execute(ctx context.Context) *schema.Dia
 	for i := range fetchPlans {
 		dia := pubStorage.SetKey(ctx, fetchPlans[i].ProviderConfigurationBlock.Name, fetchPlans[i].FetchToDatabaseSchema)
 		if dia != nil && dia.HasError() {
-			x.options.MessageChannel.Send(d)
+			x.options.MessageChannel.Send(dia)
 			return nil
 		}
 	}
