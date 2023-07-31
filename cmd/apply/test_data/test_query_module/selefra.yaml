@@ -23,7 +23,7 @@ selefra:
 
 
 providers:
-  - name: aws_001
+  - name: AWS001
     cache: 1d
     provider: aws
     max_goroutines: 100

@@ -16,6 +16,7 @@ import (
 	"github.com/selefra/selefra/pkg/storage/pgstorage"
 	"github.com/selefra/selefra/pkg/utils"
 	"os"
+	"strings"
 )
 
 // ------------------------------------------------- --------------------------------------------------------------------
@@ -209,7 +210,8 @@ func (x *ProjectLocalLifeCycleExecutor) Execute(ctx context.Context) *schema.Dia
 		return nil
 	}
 	for i := range fetchPlans {
-		dia := pubStorage.SetKey(ctx, fetchPlans[i].ProviderConfigurationBlock.Name, fetchPlans[i].FetchToDatabaseSchema)
+		lowSchema := strings.ToLower(fetchPlans[i].FetchToDatabaseSchema)
+		dia := pubStorage.SetKey(ctx, fetchPlans[i].ProviderConfigurationBlock.Name, lowSchema)
 		if dia != nil && dia.HasError() {
 			x.options.MessageChannel.Send(dia)
 			return nil
