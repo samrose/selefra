@@ -267,6 +267,7 @@ func (x *ProjectCloudLifeCycleExecutor) convertRuleQueryResultToIssueUploadReque
 		Query:  r.RuleBlock.Query,
 		Labels: labels,
 		Output: r.Row.String(),
+		Status: r.Status,
 	}
 	if r.RuleBlock.MetadataBlock != nil {
 		rule.Metadata = &issue.UploadIssueStream_Metadata{

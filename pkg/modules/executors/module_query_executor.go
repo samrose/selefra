@@ -9,6 +9,7 @@ import (
 	"github.com/selefra/selefra-provider-sdk/grpc/shard"
 	"github.com/selefra/selefra-provider-sdk/provider/schema"
 	"github.com/selefra/selefra/cli_ui"
+	"github.com/selefra/selefra/pkg/grpc/pb/issue"
 	"github.com/selefra/selefra/pkg/message"
 	"github.com/selefra/selefra/pkg/modules/module"
 	"github.com/selefra/selefra/pkg/modules/planner"
@@ -52,6 +53,8 @@ type RuleQueryResult struct {
 
 	// Find the row of data in issue
 	Row *schema.Row
+
+	Status issue.UploadIssueStream_Rule_Status
 }
 
 // ------------------------------------------------- --------------------------------------------------------------------
@@ -397,7 +400,7 @@ func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePl
 		//cli_ui.Infoln("Schema:")
 		//cli_ui.Infoln(schema + "\n")
 		//cli_ui.Infoln("Description:")
-		var resource_ids []string
+		var resource_ids = []string{""}
 		var resource_id_key string
 		resource_id_key, ok := rulePlan.Labels["resource_id"].(string)
 		if ok {
@@ -407,7 +410,7 @@ func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePl
 			rows, d := resultSet.ReadRows(100)
 			if rows != nil {
 				for _, row := range rows.SplitRowByRow() {
-					result := x.processRuleRow(ctx, rulePlan, providerContext, row, false)
+					result := x.processRuleRow(ctx, rulePlan, providerContext, row, issue.UploadIssueStream_Rule_FAILED)
 					if result == nil {
 						continue
 					}
@@ -427,13 +430,13 @@ func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePl
 			}
 		}
 
-		if rulePlan.RuleBlock.MainTable == "" && (resource_id_key == "" || resource_id_key == "no available") {
+		if strings.TrimSpace(rulePlan.RuleBlock.MetadataBlock.MainTable) == "" && (resource_id_key == "" || resource_id_key == "no available") {
 			return
 		}
 		for i := range resource_ids {
 			resource_ids[i] = fmt.Sprintf("'%s'", resource_ids[i])
 		}
-		safeQueryTemp := fmt.Sprintf("SELECT * FROM %s WHERE '%s' NOT IN (%s)", rulePlan.RuleBlock.MainTable, resource_id_key, strings.Join(resource_ids, ","))
+		safeQueryTemp := fmt.Sprintf("SELECT * FROM %s WHERE '%s' NOT IN (%s)", rulePlan.RuleBlock.MetadataBlock.MainTable, resource_id_key, strings.Join(resource_ids, ","))
 
 		safeSet, diagnostics := providerContext.Storage.Query(ctx, safeQueryTemp)
 		if utils.HasError(diagnostics) {
@@ -445,7 +448,7 @@ func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePl
 			rows, d := safeSet.ReadRows(100)
 			if rows != nil {
 				for _, row := range rows.SplitRowByRow() {
-					_ = x.processRuleRow(ctx, rulePlan, providerContext, row, true)
+					_ = x.processRuleRow(ctx, rulePlan, providerContext, row, issue.UploadIssueStream_Rule_SUCCESS)
 				}
 			}
 			if utils.HasError(d) {
@@ -542,7 +545,7 @@ AND table_schema = '%s';`
 }
 
 // Process the row queried by the rule
-func (x *ModuleQueryExecutorWorker) processRuleRow(ctx context.Context, rulePlan *planner.RulePlan, storage *planner.ProviderContext, row *schema.Row, safe bool) *RuleQueryResult {
+func (x *ModuleQueryExecutorWorker) processRuleRow(ctx context.Context, rulePlan *planner.RulePlan, storage *planner.ProviderContext, row *schema.Row, Status issue.UploadIssueStream_Rule_Status) *RuleQueryResult {
 	rowScope := planner.ExtendScope(rulePlan.RuleScope)
 
 	// Inject the queried rows into the scope
@@ -567,10 +570,9 @@ func (x *ModuleQueryExecutorWorker) processRuleRow(ctx context.Context, rulePlan
 		ProviderConfiguration: storage.ProviderConfiguration,
 		Schema:                storage.Schema,
 		Row:                   row,
+		Status:                Status,
 	}
-	if !safe {
-		x.moduleQueryExecutor.options.RuleQueryResultChannel.Send(result)
-	}
+	x.moduleQueryExecutor.options.RuleQueryResultChannel.Send(result)
 	return result
 	//x.sendMessage(schema.NewDiagnostics().AddInfo(json_util.ToJsonString(ruleBlockResult)))
 
