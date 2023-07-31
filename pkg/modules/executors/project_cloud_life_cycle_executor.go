@@ -300,10 +300,12 @@ func (x *ProjectCloudLifeCycleExecutor) convertRuleQueryResultToIssueUploadReque
 		DependenciesPath: r.Module.DependenciesPath,
 	}
 
+	schema := pgstorage.GetSchemaKey(ruleProvider.Provider, ruleProvider.Version, r.ProviderConfiguration)
+	lowSchema := strings.ToLower(schema)
 	// context
 	ruleContext := &issue.UploadIssueStream_Context{
 		SrcTableNames: r.RulePlan.BindingTables,
-		Schema:        pgstorage.GetSchemaKey(ruleProvider.Provider, ruleProvider.Version, r.ProviderConfiguration),
+		Schema:        lowSchema,
 	}
 
 	index := x.issueIdGenerator.Add(1)
