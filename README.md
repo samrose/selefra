@@ -122,6 +122,7 @@ selefra gpt <"what you want to analyze"> --openai_mode=gpt-3.5 --openai_limit=5 
 | [Auth0](https://www.selefra.io/docs/providers-connector/auth0)| The Auth0 Provider for Selefra can be used to extract data from many of the cloud services by Auth0. The provider must be configured with credentials to extract and analyze infrastructure data from Auth0.    | Stable |
 | [Zendesk](https://www.selefra.io/docs/providers-connector/zendesk)| The Zendesk Provider for Selefra can be used to extract data from many of the cloud services by Zendesk. The provider must be configured with credentials to extract and analyze infrastructure data from Zendesk.    | Stable |
 | [Consul](https://www.selefra.io/docs/providers-connector/consul)| The Consul Provider for Selefra can be used to extract data from many of the cloud services by Consul. The provider must be configured with credentials to extract and analyze infrastructure data from Consul.    | Stable |
+| [Zoom](https://www.selefra.io/docs/providers-connector/zoom)| The Zoom Provider for Selefra can be used to extract data from many of the cloud services by Zoom. The provider must be configured with credentials to extract and analyze infrastructure data from Zoom.    | Stable |
 | [Snowflake](https://www.selefra.io/docs/providers-connector/snowflake)| The Snowflake Provider for Selefra can be used to extract data from many of the cloud services by Snowflake. The provider must be configured with credentials to extract and analyze infrastructure data from Snowflake.    | coming soon |
 
 ## Community
