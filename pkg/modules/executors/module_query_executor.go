@@ -436,7 +436,7 @@ func (x *ModuleQueryExecutorWorker) execStorageQuery(ctx context.Context, rulePl
 		for i := range resource_ids {
 			resource_ids[i] = fmt.Sprintf("'%s'", resource_ids[i])
 		}
-		safeQueryTemp := fmt.Sprintf("SELECT * FROM %s WHERE '%s' NOT IN (%s)", rulePlan.RuleBlock.MetadataBlock.MainTable, resource_id_key, strings.Join(resource_ids, ","))
+		safeQueryTemp := fmt.Sprintf("SELECT * FROM %s WHERE \"%s\" NOT IN (%s)", rulePlan.RuleBlock.MetadataBlock.MainTable, resource_id_key, strings.Join(resource_ids, ","))
 
 		safeSet, diagnostics := providerContext.Storage.Query(ctx, safeQueryTemp)
 		if utils.HasError(diagnostics) {
