@@ -124,6 +124,7 @@ selefra gpt <"what you want to analyze"> --openai_mode=gpt-3.5 --openai_limit=5 
 | [Consul](https://www.selefra.io/docs/providers-connector/consul)| The Consul Provider for Selefra can be used to extract data from many of the cloud services by Consul. The provider must be configured with credentials to extract and analyze infrastructure data from Consul.    | Stable |
 | [Zoom](https://www.selefra.io/docs/providers-connector/zoom)| The Zoom Provider for Selefra can be used to extract data from many of the cloud services by Zoom. The provider must be configured with credentials to extract and analyze infrastructure data from Zoom.    | Stable |
 | [Gandi](https://www.selefra.io/docs/providers-connector/gandi)| The Gandi Provider for Selefra can be used to extract data from many of the cloud services by Gandi. The provider must be configured with credentials to extract and analyze infrastructure data from Gandi.    | Stable |
+| [IBM](https://www.selefra.io/docs/providers-connector/ibm)| The IBM Provider for Selefra can be used to extract data from many of the cloud services by IBM. The provider must be configured with credentials to extract and analyze infrastructure data from IBM.    | Stable |
 | [Snowflake](https://www.selefra.io/docs/providers-connector/snowflake)| The Snowflake Provider for Selefra can be used to extract data from many of the cloud services by Snowflake. The provider must be configured with credentials to extract and analyze infrastructure data from Snowflake.    | coming soon |
 
 ## Community
