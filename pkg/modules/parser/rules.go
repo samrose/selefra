@@ -39,11 +39,12 @@ func (x *YamlFileToModuleParser) parseRulesBlock(rulesBlockKeyNode, rulesBlockVa
 // ------------------------------------------------ ---------------------------------------------------------------------
 
 const (
-	RuleBlockNameFieldName     = "name"
-	RuleBlockQueryFieldName    = "query"
-	RuleBlockLabelsFieldName   = "labels"
-	RuleBlockMetadataFieldName = "metadata"
-	RuleBlockOutputFieldName   = "output"
+	RuleBlockNameFieldName      = "name"
+	RuleBlockQueryFieldName     = "query"
+	RuleBlockLabelsFieldName    = "labels"
+	RuleBlockMetadataFieldName  = "metadata"
+	RuleBlockMainTableFieldName = "main_table"
+	RuleBlockOutputFieldName    = "output"
 )
 
 func (x *YamlFileToModuleParser) parseRuleBlock(index int, ruleBlockNode *yaml.Node, diagnostics *schema.Diagnostics) *module.RuleBlock {
@@ -71,6 +72,9 @@ func (x *YamlFileToModuleParser) parseRuleBlock(index int, ruleBlockNode *yaml.N
 
 		case RuleBlockMetadataFieldName:
 			ruleBlock.MetadataBlock = x.parseMetadataBlock(index, ruleBlock, entry.key, entry.value, diagnostics)
+
+		case RuleBlockMainTableFieldName:
+			ruleBlock.MainTable = x.parseStringValueWithDiagnosticsAndSetLocation(ruleBlock, RuleBlockMainTableFieldName, entry, blockPath, diagnostics)
 
 		case RuleBlockOutputFieldName:
 			ruleBlock.Output = x.parseStringValueWithDiagnosticsAndSetLocation(ruleBlock, RuleBlockOutputFieldName, entry, blockPath, diagnostics)
