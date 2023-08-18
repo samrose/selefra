@@ -686,6 +686,8 @@ github.com/segmentio/backo-go v1.0.1 h1:68RQccglxZeyURy93ASB/2kc9QudzgIDexJ927N+
 github.com/segmentio/backo-go v1.0.1/go.mod h1:9/Rh6yILuLysoQnZ2oNooD2g7aBnvM7r/fNVxRNWfBc=
 github.com/selefra/selefra-provider-sdk v0.0.21 h1:y+wsndma5yi3k7NaJa/baoEMUz7Lyk83ENdA4ph4ba4=
 github.com/selefra/selefra-provider-sdk v0.0.21/go.mod h1:7kxOCmokgSZu0PznEV9vuin9nU3dz8SV6bht8yPolbk=
+github.com/selefra/selefra-provider-sdk v0.0.23-0.20230818060159-5a522673a95e h1:dhEH7B/rrNlUlnAK4b5vn44qNJvi1JKjllpkLH5pisY=
+github.com/selefra/selefra-provider-sdk v0.0.23-0.20230818060159-5a522673a95e/go.mod h1:7kxOCmokgSZu0PznEV9vuin9nU3dz8SV6bht8yPolbk=
 github.com/selefra/selefra-utils v0.0.4 h1:NJ1d8qr0I4Gse9lxk2oll0QlTGtuNdBlqRPoViHXhBA=
 github.com/selefra/selefra-utils v0.0.4/go.mod h1:LPY6RNU12IniRH3xz7yS7xF10YH3emQ6NWrn6UuBjEk=
 github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24/go.mod h1:M+9NzErvs504Cn4c5DxATwIqPbtswREoFCre64PpcG4=
