@@ -15,12 +15,12 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/selefra/selefra-provider-sdk v0.0.23-0.20230818060159-5a522673a95e
+	github.com/selefra/selefra-provider-sdk v0.0.23-0.20230818075347-cef95b1e16a5
 	github.com/selefra/selefra-utils v0.0.4
 	github.com/songzhibin97/gkit v1.2.7
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0 // indirect
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.4
 	github.com/vbauerster/mpb/v7 v7.5.3
 	go.uber.org/zap v1.23.0
 	google.golang.org/grpc v1.51.0
@@ -148,5 +148,5 @@ require (
 	github.com/hashicorp/go-version v1.6.0
 	github.com/rudderlabs/analytics-go/v4 v4.1.0
 	github.com/sashabaranov/go-openai v1.5.7
-	golang.org/x/sys v0.6.0
+	golang.org/x/sys v0.10.0
 )
