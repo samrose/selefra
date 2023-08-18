@@ -16,15 +16,18 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"github.com/selefra/selefra/cmd"
+	"github.com/selefra/selefra/pkg/debug"
+	"time"
 )
 
 func main() {
-	//service := debug.NewSamplingService("./", time.Second*30)
-	//err := service.Start()
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
+	service := debug.NewSamplingService("./", time.Second*30)
+	err := service.Start()
+	if err != nil {
+		fmt.Println(err)
+	}
 	cmd.Execute()
-	//service.Stop()
+	service.Stop()
 }
