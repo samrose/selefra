@@ -128,6 +128,7 @@ selefra gpt <"what you want to analyze"> --openai_mode=gpt-3.5 --openai_limit=5 
 | [IBM](https://www.selefra.io/docs/providers-connector/ibm)| The IBM Provider for Selefra can be used to extract data from many of the cloud services by IBM. The provider must be configured with credentials to extract and analyze infrastructure data from IBM.    | Stable |
 | [Pagerduty](https://www.selefra.io/docs/providers-connector/pagerduty)| The Pagerduty Provider for Selefra can be used to extract data from many of the cloud services by Pagerduty. The provider must be configured with credentials to extract and analyze infrastructure data from Pagerduty.    | Stable |
 | [AliCloud](https://www.selefra.io/docs/providers-connector/alicloud)| The AliCloud Provider for Selefra can be used to extract data from many of the cloud services by AliCloud. The provider must be configured with credentials to extract and analyze infrastructure data from AliCloud.    | Stable |
+| [Okta](https://www.selefra.io/docs/providers-connector/okta)| The Okta Provider for Selefra can be used to extract data from many of the cloud services by Okta. The provider must be configured with credentials to extract and analyze infrastructure data from Okta.    | Stable |
 | [Snowflake](https://www.selefra.io/docs/providers-connector/snowflake)| The Snowflake Provider for Selefra can be used to extract data from many of the cloud services by Snowflake. The provider must be configured with credentials to extract and analyze infrastructure data from Snowflake.    | coming soon |
 
 ## Community
