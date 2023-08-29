@@ -133,7 +133,6 @@ selefra gpt <"what you want to analyze"> --openai_mode=gpt-3.5 --openai_limit=5 
 | [Boundary](https://www.selefra.io/docs/providers-connector/boundary)| The Boundary Provider for Selefra can be used to extract data from many of the cloud services by Boundary. The provider must be configured with credentials to extract and analyze infrastructure data from Boundary.    | Stable |
 | [Stripe](https://www.selefra.io/docs/providers-connector/stripe)| The Stripe Provider for Selefra can be used to extract data from many of the cloud services by Stripe. The provider must be configured with credentials to extract and analyze infrastructure data from Stripe.    | Stable |
 | [Planetscale](https://www.selefra.io/docs/providers-connector/planetscale)| The Planetscale Provider for Selefra can be used to extract data from many of the cloud services by Planetscale. The provider must be configured with credentials to extract and analyze infrastructure data from Planetscale.    | Stable |
-
 | [Snowflake](https://www.selefra.io/docs/providers-connector/snowflake)| The Snowflake Provider for Selefra can be used to extract data from many of the cloud services by Snowflake. The provider must be configured with credentials to extract and analyze infrastructure data from Snowflake.    | coming soon |
 
 ## Community
