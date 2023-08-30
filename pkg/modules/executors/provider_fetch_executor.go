@@ -478,7 +478,7 @@ func (x *ProviderFetchExecutorWorker) executePlan(ctx context.Context, plan *pla
 		success = len(res.FinishedTables)
 		errorsN = 0
 		cli_ui.Infof("Provider %s resource fetch %d/%d, finished task count %d ...\r", plan.String(), success, total, recordCount)
-		x.sendMessage(x.addProviderNameForMessage(plan, schema.NewDiagnostics().AddInfo("Provider %s resource fetch %d/%d, finished task count %d ...", plan.String(), success, total, recordCount)))
+		//x.sendMessage(x.addProviderNameForMessage(plan, schema.NewDiagnostics().AddInfo("Provider %s resource fetch %d/%d, finished task count %d ...", plan.String(), success, total, recordCount)))
 	}
 	_ = success
 	_ = total
@@ -507,10 +507,8 @@ func (x *ProviderFetchExecutorWorker) addProviderNameForMessage(plan *planner.Pr
 		return nil
 	}
 	diagnostics := schema.NewDiagnostics()
-	if d.HasError() {
-		for _, item := range d.GetDiagnosticSlice() {
-			diagnostics.AddDiagnostic(schema.NewDiagnostic(item.Level(), fmt.Sprintf("Provider %s say: %s", plan.String(), item.Content())))
-		}
+	for _, item := range d.GetDiagnosticSlice() {
+		diagnostics.AddDiagnostic(schema.NewDiagnostic(item.Level(), fmt.Sprintf("Provider %s say: %s", plan.String(), item.Content())))
 	}
 	return diagnostics
 }
